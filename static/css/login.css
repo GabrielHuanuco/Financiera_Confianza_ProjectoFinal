@@ -1,0 +1,462 @@
+/* ═══════════════════════════════════════════════
+   static/css/login.css — Financiera Confianza
+   ═══════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --azul-oscuro:  #003B7A;
+  --azul-medio:   #0050A0;
+  --azul:         #0066CC;
+  --azul-claro:   #1A7FE0;
+  --blanco:       #FFFFFF;
+  --blanco-70:    rgba(255,255,255,0.70);
+  --blanco-40:    rgba(255,255,255,0.40);
+  --blanco-20:    rgba(255,255,255,0.20);
+  --blanco-15:    rgba(255,255,255,0.15);
+  --blanco-10:    rgba(255,255,255,0.10);
+  --error:        #FFD0D0;
+  --sombra-card:  0 24px 64px rgba(0,40,110,0.45);
+  --radio:        40px;
+}
+
+/* ── BODY ────────────────────────────────────── */
+html, body {
+  height: 100%;
+  font-family: 'Nunito', sans-serif;
+}
+
+body {
+  display: flex;
+  min-height: 100vh;
+  background: var(--azul-oscuro);
+  overflow: hidden;
+}
+
+/* ── FONDO FOTOGRÁFICO ───────────────────────── */
+.bg-foto {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image: url('../img/20210507_092353 (1) - copia.jpg');
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-color: #4A7A95;
+}
+
+.bg-foto::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 50, 110, 0.90) 0%,
+    rgba(0, 50, 110, 0.70) 35%,
+    rgba(0, 50, 110, 0.20) 75%,
+    transparent 100%
+  );
+}
+
+/* ── CARD LATERAL ────────────────────────────── */
+.card-login {
+  position: relative;
+  z-index: 10;
+  width: 420px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(175deg, var(--azul) 0%, var(--azul-oscuro) 100%);
+  box-shadow: var(--sombra-card);
+  animation: entrar 0.55s cubic-bezier(.22,1,.36,1) both;
+}
+
+@keyframes entrar {
+  from { transform: translateX(-50px); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
+/* ── CUERPO DE LA CARD ───────────────────────── */
+.card-cuerpo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 44px 32px;
+}
+
+/* ── LOGO ────────────────────────────────────── */
+.logo-bloque {
+  text-align: center;
+  margin-bottom: 32px;
+  animation: subirFade 0.5s 0.15s both;
+}
+
+.logo-pre {
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--blanco-70);
+  letter-spacing: 0.5px;
+}
+
+.logo-nombre {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--blanco);
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+
+.logo-ola {
+  display: block;
+  width: 115px;
+  height: 14px;
+  margin: 6px auto 12px;
+}
+
+.logo-fundacion {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--blanco-70);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.logo-ruc {
+  font-size: 9.5px;
+  color: var(--blanco-40);
+  margin-top: 2px;
+}
+
+/* ── SALUDO ──────────────────────────────────── */
+.saludo {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--blanco);
+  margin-bottom: 8px;
+  align-self: flex-start;
+  animation: subirFade 0.5s 0.22s both;
+}
+
+.saludo-sub {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--blanco-70);
+  margin-bottom: 24px;
+  align-self: flex-start;
+  animation: subirFade 0.5s 0.26s both;
+}
+
+/* ── FORM ────────────────────────────────────── */
+.form-login {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Alertas de error */
+.alerta-error {
+  background: rgba(220, 60, 60, 0.20);
+  border: 1px solid rgba(255, 100, 100, 0.40);
+  border-radius: 14px;
+  color: var(--error);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 16px;
+  text-align: center;
+  animation: temblar 0.4s both;
+}
+
+@keyframes temblar {
+  0%,100% { transform: translateX(0); }
+  20%     { transform: translateX(-7px); }
+  40%     { transform: translateX(7px); }
+  60%     { transform: translateX(-4px); }
+  80%     { transform: translateX(4px); }
+}
+
+/* ── GRUPO DE CAMPO (label + input) ──────────── */
+.campo-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: subirFade 0.5s both;
+}
+
+.campo-grupo:nth-child(2) { animation-delay: 0.28s; }
+.campo-grupo:nth-child(3) { animation-delay: 0.34s; }
+.campo-grupo:nth-child(4) { animation-delay: 0.40s; }
+
+.campo-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--blanco-70);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding-left: 4px;
+}
+
+.campo {
+  position: relative;
+}
+
+.campo-error {
+  font-size: 11.5px;
+  color: var(--error);
+  padding-left: 14px;
+  margin-top: 2px;
+}
+
+/* Select */
+.select-wrap {
+  position: relative;
+}
+
+.select-wrap::after {
+  content: '▾';
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--blanco-70);
+  pointer-events: none;
+  font-size: 17px;
+}
+
+select,
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  width: 100%;
+  height: 50px;
+  border-radius: var(--radio);
+  border: 1.5px solid var(--blanco-20);
+  background: var(--blanco-10);
+  color: var(--blanco);
+  font-family: 'Nunito', sans-serif;
+  font-size: 14.5px;
+  font-weight: 600;
+  padding: 0 20px;
+  outline: none;
+  transition: border 0.2s, background 0.2s, box-shadow 0.2s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+select option {
+  background: var(--azul-medio);
+  color: var(--blanco);
+}
+
+select:focus,
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
+  border-color: rgba(255,255,255,0.65);
+  background: rgba(255,255,255,0.16);
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.07);
+}
+
+input::placeholder {
+  color: var(--blanco-40);
+  font-weight: 400;
+}
+
+/* Fila contraseña + botón */
+.fila-pass {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pass-wrap {
+  position: relative;
+  flex: 1;
+}
+
+.pass-wrap input {
+  padding-right: 48px;
+}
+
+.btn-ojo {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--blanco-70);
+  display: flex;
+  align-items: center;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.btn-ojo:hover { color: var(--blanco); }
+
+/* Botón flecha enviar */
+.btn-enviar {
+  width: 50px;
+  height: 50px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--blanco);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+  transition: transform 0.18s, box-shadow 0.18s;
+}
+
+.btn-enviar:hover {
+  transform: scale(1.08);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+}
+
+.btn-enviar:active { transform: scale(0.95); }
+
+/* ── SEPARADOR ───────────────────────────────── */
+.separador {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+  animation: subirFade 0.5s 0.46s both;
+}
+
+.separador::before,
+.separador::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--blanco-15);
+}
+
+.separador-texto {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--blanco-40);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ── BOTÓN CREAR CUENTA ──────────────────────── */
+.btn-registro {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  height: 50px;
+  border-radius: var(--radio);
+  border: 1.5px solid var(--blanco-20);
+  background: transparent;
+  color: var(--blanco);
+  font-family: 'Nunito', sans-serif;
+  font-size: 14.5px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s;
+  animation: subirFade 0.5s 0.52s both;
+  letter-spacing: 0.2px;
+}
+
+.btn-registro:hover {
+  border-color: rgba(255,255,255,0.55);
+  background: rgba(255,255,255,0.10);
+  transform: translateY(-1px);
+}
+
+.btn-registro:active {
+  transform: scale(0.98);
+}
+
+.btn-registro svg {
+  opacity: 0.80;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.btn-registro:hover svg {
+  opacity: 1;
+  transform: translateX(2px);
+}
+
+/* ── PIE DE LA CARD ──────────────────────────── */
+.card-pie {
+  padding: 18px 44px 26px;
+  border-top: 1px solid var(--blanco-15);
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  animation: subirFade 0.5s 0.60s both;
+}
+
+.pie-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--blanco-70);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.pie-link:hover { color: var(--blanco); }
+
+/* ── ANIMACIÓN ───────────────────────────────── */
+@keyframes subirFade {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── REGISTRO: scroll cuando hay más campos ──── */
+body.pagina-registro {
+  overflow-y: auto;
+}
+
+body.pagina-registro .card-login {
+  min-height: 100vh;
+  height: auto;
+}
+
+/* Delays extra para campos de registro */
+.campo-grupo:nth-child(5) { animation-delay: 0.46s; }
+.campo-grupo:nth-child(6) { animation-delay: 0.52s; }
+.campo-grupo:nth-child(7) { animation-delay: 0.58s; }
+
+/* Botón volver al login */
+.btn-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--blanco-70);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  margin-bottom: 18px;
+  align-self: flex-start;
+  transition: color 0.2s;
+  animation: subirFade 0.5s 0.12s both;
+}
+
+.btn-volver:hover { color: var(--blanco); }
+
+/* ── RESPONSIVE ──────────────────────────────── */
+@media (max-width: 440px) {
+  .card-login { width: 100%; }
+  .card-cuerpo { padding: 44px 28px 28px; }
+  .card-pie { padding: 18px 28px 22px; }
+}

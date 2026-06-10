@@ -1,0 +1,167 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %} - Financiera Confianza</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-brand">
+                <i class="bi bi-bank"></i> Confianza
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="{% url 'dashboard:index' %}"
+                class="nav-item {% if request.resolver_match.app_name == 'dashboard' %}active{% endif %}">
+                <i class="bi bi-grid-1x2-fill"></i> Mi Resumen
+            </a>
+            <a href="{% url 'creditos:index' %}"
+                class="nav-item {% if request.resolver_match.app_name == 'creditos' %}active{% endif %}">
+                <i class="bi bi-credit-card-2-front"></i> Créditos
+            </a>
+            <a href="{% url 'ahorros:index' %}"
+                class="nav-item {% if request.resolver_match.app_name == 'ahorros' %}active{% endif %}">
+                <i class="bi bi-piggy-bank"></i> Ahorros
+            </a>
+            <a href="{% url 'seguros:index' %}"
+                class="nav-item {% if request.resolver_match.app_name == 'seguros' %}active{% endif %}">
+                <i class="bi bi-shield-check"></i> Seguros
+            </a>
+            <a href="{% url 'transferencias:index' %}"
+                class="nav-item {% if request.resolver_match.app_name == 'transferencias' %}active{% endif %}">
+                <i class="bi bi-arrow-left-right"></i> Transferencias
+            </a>
+            <a href="{% url 'servicios:pagar' %}"
+                class="nav-item {% if request.resolver_match.app_name == 'servicios' %}active{% endif %}">
+                <i class="bi bi-receipt"></i> Pago de Servicios
+            </a>
+            <a href="#" class="nav-item"><i class="bi bi-gear"></i> Configuración</a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-wrapper">
+        <!-- Top Header -->
+        <header class="top-header">
+            <div class="header-search">
+                <input type="text" placeholder="Buscar operaciones...">
+            </div>
+            <div class="header-user">
+                <div style="position: relative; display: inline-block; margin-right: 15px;">
+                    <i class="bi bi-bell" style="font-size: 1.2rem; cursor: pointer;"></i>
+                    {% if unread_notifications > 0 %}
+                    <span style="position: absolute; top: -5px; right: -8px; background: var(--danger-color); color: white; border-radius: 50%; padding: 2px 5px; font-size: 0.7rem; font-weight: bold;">{{ unread_notifications }}</span>
+                    {% endif %}
+                </div>
+                <span>{{ request.user.first_name|default:"Usuario" }}</span>
+                <div class="user-avatar">{{ request.user.first_name|default:"U"|slice:":1" }}</div>
+                <a href="{% url 'authentication:logout' %}"
+                    style="margin-left: 15px; color: var(--danger-color); font-size: 1.5rem; text-decoration: none;"
+                    title="Cerrar Sesión">
+                    <i class="bi bi-box-arrow-right"></i>
+                </a>
+            </div>
+        </header>
+
+        <!-- Dashboard Content -->
+        <div class="content-area">
+            {% block dashboard_content %}
+            {% endblock %}
+        </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <script>
+        /**
+         * Funcionalidad Global para Toasts (Notificaciones)
+         * type: 'success', 'error', 'info'
+         */
+        function showToast(title, message, type = 'info') {
+            const container = document.getElementById('toast-container');
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            let iconClass = 'bi-info-circle-fill';
+            if (type === 'success') iconClass = 'bi-check-circle-fill';
+            if (type === 'error') iconClass = 'bi-x-circle-fill';
+
+            toast.innerHTML = `
+                <div class="toast-icon"><i class="bi ${iconClass}"></i></div>
+                <div class="toast-content">
+                    <span class="toast-title">${title}</span>
+                    <span class="toast-message">${message}</span>
+                </div>
+            `;
+
+            container.appendChild(toast);
+
+            // Trigger animation
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+
+            // Remove after 4 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400); // wait for animation
+            }, 4000);
+        }
+
+        // Convertir variables de Django messages en Toasts JS
+        {% if messages %}
+        {% for message in messages %}
+        {% if message.tags == 'success' %}
+        showToast('Éxito', '{{ message|escapejs }}', 'success');
+        {% elif message.tags == 'error' %}
+        showToast('Error', '{{ message|escapejs }}', 'error');
+        {% else %}
+        showToast('Información', '{{ message|escapejs }}', 'info');
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+
+        /**
+         * Helper para llamadas AJAX con validación CSRF
+         */
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

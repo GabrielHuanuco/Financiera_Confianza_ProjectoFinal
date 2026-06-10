@@ -1,0 +1,59 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Mis Ahorros{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/modules.css' %}">
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="module-welcome">
+    <h1>Mis Ahorros <i class="bi bi-piggy-bank" style="color: var(--success-color);"></i></h1>
+    <p>Mira crecer tu dinero con nuestras cuentas de alto rendimiento.</p>
+</div>
+
+<div class="module-grid">
+    <!-- Cuenta de Ahorro Principal -->
+    <div class="premium-card">
+        <div class="premium-card-title">
+            <i class="bi bi-wallet2" style="color: var(--success-color);"></i> Cuenta Sueldo
+        </div>
+        <div class="metric-label">Saldo Disponible</div>
+        <div class="metric-value">S/ 14,250.00</div>
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">N° 194-*****-093</p>
+
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-premium btn-primary-premium" style="background: linear-gradient(135deg, #10b981, #059669);">Transferir</button>
+            <button class="btn-premium btn-outline-premium" style="border-color: #10b981; color: #10b981;"><i class="bi bi-three-dots"></i></button>
+        </div>
+    </div>
+
+    <!-- Depósito a Plazo Fijo -->
+    <div class="premium-card">
+        <div class="premium-card-title">
+            <i class="bi bi-graph-up-arrow" style="color: #f59e0b;"></i> Plazo Fijo
+        </div>
+        <div class="metric-label">Inversión Actual</div>
+        <div class="metric-value">S/ 50,000.00</div>
+        
+        <div style="margin: 20px 0; background: #fffbeb; padding: 10px; border-radius: 8px; border-left: 4px solid #f59e0b;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.85rem; color: #b45309; font-weight: 600;">Tasa de Interés (TEA)</span>
+                <span style="font-weight: 800; color: #b45309; font-size: 1.1rem;">6.5%</span>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin:0;">Vencimiento</p>
+                <p style="font-weight: 600; margin:0;">12 Dic 2026</p>
+            </div>
+            <div style="text-align: right;">
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin:0;">Interés ganado</p>
+                <p style="font-weight: 600; margin:0; color: var(--success-color);">+ S/ 1,250.00</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

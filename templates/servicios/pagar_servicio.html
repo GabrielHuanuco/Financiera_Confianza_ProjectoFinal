@@ -1,0 +1,228 @@
+{% extends 'base_dashboard.html' %}
+
+{% block title %}Pago de Servicios{% endblock %}
+
+{% block extra_css %}
+<style>
+    .pago-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #334155;
+    }
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+        box-sizing: border-box;
+    }
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+    }
+    .btn-submit {
+        width: 100%;
+        padding: 14px;
+        background-color: var(--primary-color);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.3s, transform 0.1s;
+    }
+    .btn-submit:hover {
+        background-color: #1e40af;
+    }
+    .btn-submit:active {
+        transform: scale(0.98);
+    }
+    .alerts {
+        margin-bottom: 20px;
+    }
+    .alert {
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+    .alert-success {
+        background-color: #dcfce7;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+    }
+    .alert-error {
+        background-color: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+    .balance-info {
+        font-size: 0.9rem;
+        color: #64748b;
+        margin-top: 5px;
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="welcome-section">
+    <h1>Pago de Servicios</h1>
+    <p>Paga tus servicios básicos rápidamente desde tus cuentas.</p>
+</div>
+
+<div class="glass-panel pago-card">
+    <div class="alerts" id="alerts-container"></div>
+
+    <form id="pago-form" method="POST" action="{% url 'servicios:pagar' %}">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="tipo_servicio">Servicio a Pagar</label>
+            <select name="tipo_servicio" id="tipo_servicio" class="form-control" required>
+                <option value="">Selecciona un servicio...</option>
+                <option value="Luz (Enel/Luz del Sur)">Luz (Enel/Luz del Sur)</option>
+                <option value="Agua (Sedapal)">Agua (Sedapal)</option>
+                <option value="Internet/Telefonía (Movistar/Claro/Entel)">Internet/Telefonía</option>
+                <option value="Gas (Cálidda)">Gas (Cálidda)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="codigo_pago">Código de Suministro / Número de Cliente</label>
+            <input type="text" name="codigo_pago" id="codigo_pago" class="form-control" placeholder="Ej. 12345678" required>
+        </div>
+
+        <div class="form-group">
+            <label for="monto">Monto a pagar (S/)</label>
+            <input type="number" name="monto" id="monto" class="form-control" placeholder="Ej. 50.00" min="1" step="0.01" required>
+        </div>
+
+        <div class="form-group">
+            <label for="cuenta_id">Cuenta de Cargo</label>
+            <select name="cuenta_id" id="cuenta_id" class="form-control" required>
+                <option value="">Selecciona una cuenta...</option>
+                {% for cuenta in cuentas %}
+                <option value="{{ cuenta.id }}">Cuenta {{ cuenta.tipo_cuenta }} - {{ cuenta.numero_cuenta }} (Saldo: S/ {{ cuenta.saldo }})</option>
+                {% empty %}
+                <option value="" disabled>No tienes cuentas activas</option>
+                {% endfor %}
+            </select>
+            {% if not cuentas %}
+            <span class="balance-info" style="color: #ef4444;">Necesitas una cuenta activa para realizar pagos.</span>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn-submit" id="btn-submit" {% if not cuentas %}disabled style="opacity: 0.5; cursor: not-allowed;"{% endif %}>
+            <span id="btn-text"><i class="bi bi-wallet2"></i> Procesar Pago</span>
+            <span id="btn-spinner" style="display: none;"><i class="bi bi-arrow-repeat" style="animation: spin 1s linear infinite; display: inline-block;"></i> Procesando...</span>
+        </button>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+</style>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const form = document.getElementById("pago-form");
+        const btnSubmit = document.getElementById("btn-submit");
+        const btnText = document.getElementById("btn-text");
+        const btnSpinner = document.getElementById("btn-spinner");
+
+        // Petición AJAX (Fetch) en lugar de submit tradicional
+        if(form) {
+            form.addEventListener("submit", function(e) {
+                e.preventDefault(); // Evitamos la recarga
+                
+                if(btnSubmit.disabled && btnSubmit.style.cursor === "wait") {
+                    return;
+                }
+                
+                // Mostrar estado de carga
+                btnSubmit.disabled = true;
+                btnSubmit.style.opacity = "0.7";
+                btnSubmit.style.cursor = "wait";
+                btnText.style.display = "none";
+                btnSpinner.style.display = "inline";
+
+                const formData = new FormData(form);
+                
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Restaurar botón
+                    btnSubmit.disabled = false;
+                    btnSubmit.style.opacity = "1";
+                    btnSubmit.style.cursor = "pointer";
+                    btnText.style.display = "inline";
+                    btnSpinner.style.display = "none";
+                    
+                    if(data.status === 'success') {
+                        showToast('Éxito', data.message, 'success');
+                        form.reset();
+                        
+                        // Actualizar dinámicamente el texto del select con el nuevo saldo
+                        if (data.nuevo_saldo && data.cuenta_id) {
+                            const option = form.querySelector(`option[value="${data.cuenta_id}"]`);
+                            if (option) {
+                                // Extract original format and update only the balance part
+                                // A simplistic way: just replace the inner text
+                                const currentText = option.innerText;
+                                option.innerText = currentText.replace(/(Saldo: S\/ )[\d.]+/, `$1${data.nuevo_saldo}`);
+                            }
+                        }
+                    } else {
+                        showToast('Error', data.message || 'Ocurrió un error al procesar el pago.', 'error');
+                    }
+                })
+                .catch(error => {
+                    btnSubmit.disabled = false;
+                    btnSubmit.style.opacity = "1";
+                    btnSubmit.style.cursor = "pointer";
+                    btnText.style.display = "inline";
+                    btnSpinner.style.display = "none";
+                    showToast('Error', 'No se pudo conectar con el servidor.', 'error');
+                });
+            });
+        }
+        
+        // Simular un código de pago de prueba aleatorio si se desea (funcionalidad extra)
+        const selectServicio = document.getElementById("tipo_servicio");
+        const inputCodigo = document.getElementById("codigo_pago");
+        
+        if(selectServicio && inputCodigo) {
+            selectServicio.addEventListener("change", function() {
+                if (this.value !== "" && inputCodigo.value === "") {
+                    // Genera un código dummy si está vacío
+                    inputCodigo.value = Math.floor(10000000 + Math.random() * 90000000).toString();
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

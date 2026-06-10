@@ -1,0 +1,237 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Mis Créditos{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/modules.css' %}">
+<style>
+    .progress-bar-wrap {
+        width: 100%;
+        height: 8px;
+        background: #e2e8f0;
+        border-radius: 4px;
+        overflow: hidden;
+        margin: 6px 0 4px;
+    }
+    .progress-bar-fill {
+        height: 100%;
+        background: var(--primary-color);
+        border-radius: 4px;
+        transition: width 0.6s ease;
+    }
+    .badge-estado {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+    .badge-desembolsado { background: #dcfce7; color: #166534; }
+    .badge-pagado       { background: #dbeafe; color: #1e3a8a; }
+    .badge-evaluacion   { background: #fef9c3; color: #92400e; }
+    .badge-rechazado    { background: #fee2e2; color: #991b1b; }
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-muted);
+    }
+    .empty-state i { font-size: 3rem; margin-bottom: 16px; display: block; }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="module-welcome">
+    <h1>Mis Créditos <i class="bi bi-credit-card-2-front" style="color: var(--primary-color);"></i></h1>
+    <p>Administra tus préstamos y realiza pagos de cuotas fácilmente.</p>
+</div>
+
+<div class="module-grid">
+
+    {% if creditos %}
+        {% for credito in creditos %}
+        <div class="premium-card" id="card-credito-{{ credito.id }}">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div class="premium-card-title">
+                    <i class="bi bi-cash-stack"></i> {{ credito.get_tipo_credito_display }}
+                </div>
+                <span class="badge-estado badge-desembolsado">Activo</span>
+            </div>
+
+            <div class="metric-label">Saldo Pendiente</div>
+            <div class="metric-value" id="saldo-{{ credito.id }}">S/ {{ credito.saldo_pendiente|floatformat:2 }}</div>
+
+            <div style="margin: 16px 0;">
+                <div style="display:flex; justify-content:space-between; font-size:0.82rem; color:var(--text-muted);">
+                    <span>Progreso de pago</span>
+                    <span id="pct-{{ credito.id }}">{{ credito.progreso_pago }}%</span>
+                </div>
+                <div class="progress-bar-wrap">
+                    <div class="progress-bar-fill" id="bar-{{ credito.id }}" style="width: {{ credito.progreso_pago }}%;"></div>
+                </div>
+                <div style="font-size:0.78rem; color:var(--text-muted);">
+                    <span id="cuotas-pagadas-{{ credito.id }}">{{ credito.cuotas_pagadas }}</span>/{{ credito.cuotas }} cuotas pagadas
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <div>
+                    <p style="font-size:0.82rem; color:var(--text-muted); margin:0;">Cuota mensual</p>
+                    <p style="font-weight:700; margin:0;">S/ {{ credito.cuota_mensual|floatformat:2 }}</p>
+                </div>
+                <div style="text-align:right;">
+                    <p style="font-size:0.82rem; color:var(--text-muted); margin:0;">Tasa anual</p>
+                    <p style="font-weight:600; margin:0;">{{ credito.tasa_interes|floatformat:0 }}%</p>
+                </div>
+                <div style="text-align:right;">
+                    <p style="font-size:0.82rem; color:var(--text-muted); margin:0;">Cuotas restantes</p>
+                    <p style="font-weight:600; margin:0; color:var(--danger-color);" id="restantes-{{ credito.id }}">
+                        {{ credito.cuotas_restantes }}
+                    </p>
+                </div>
+            </div>
+
+            <button
+                class="btn-premium btn-primary-premium btn-pagar"
+                data-credito-id="{{ credito.id }}"
+                data-cuota="{{ credito.cuota_mensual }}"
+                data-tipo="{{ credito.get_tipo_credito_display }}"
+            >
+                <i class="bi bi-cash"></i> Pagar Cuota &nbsp;(S/ {{ credito.cuota_mensual|floatformat:2 }})
+            </button>
+        </div>
+        {% endfor %}
+
+    {% else %}
+        <!-- Sin créditos activos -->
+        <div class="premium-card">
+            <div class="empty-state">
+                <i class="bi bi-credit-card"></i>
+                <p style="font-weight:600; font-size:1.1rem;">No tienes créditos activos</p>
+                <p style="font-size:0.9rem;">Solicita un crédito y aparecerá aquí una vez aprobado.</p>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Solicitar Nuevo Crédito -->
+    <div class="premium-card" style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; border:2px dashed #cbd5e1; background:transparent;">
+        <div style="width:80px; height:80px; border-radius:50%; background:#eff6ff; color:var(--primary-color); display:flex; align-items:center; justify-content:center; font-size:2.5rem; margin-bottom:20px;">
+            <i class="bi bi-plus-lg"></i>
+        </div>
+        <h3 style="font-size:1.2rem; font-weight:700; margin-bottom:10px;">Solicitar Nuevo Crédito</h3>
+        <p style="color:var(--text-muted); margin-bottom:8px; font-size:0.95rem;">
+            Tenemos opciones desde S/ 1,000 hasta S/ 300,000 con tasas desde 10% anual.
+        </p>
+
+        {% if cliente %}
+        <p style="font-size:0.82rem; margin-bottom:20px;">
+            <i class="bi bi-star-fill" style="color:#f59e0b;"></i>
+            Score crediticio: <strong>{{ cliente.score_crediticio }}</strong>
+            &nbsp;|&nbsp;
+            Ingresos: <strong>S/ {{ cliente.ingresos|floatformat:2 }}</strong>
+        </p>
+        {% endif %}
+
+        <a href="{% url 'creditos:solicitar' %}" class="btn-premium btn-outline-premium">
+            <i class="bi bi-search"></i> Ver Ofertas
+        </a>
+    </div>
+</div>
+
+<!-- Historial de Pagos -->
+<div class="premium-card" style="margin-top:24px;">
+    <div class="premium-card-title">
+        <i class="bi bi-clock-history"></i> Historial de Pagos
+    </div>
+
+    {% if historial %}
+    <div class="premium-list" id="historial-lista">
+        {% for pago in historial %}
+        <div class="premium-list-item">
+            <div class="item-left">
+                <div class="item-icon" style="background:#dcfce7; color:var(--success-color);">
+                    <i class="bi bi-check-lg"></i>
+                </div>
+                <div class="item-details">
+                    <h4>Cuota #{{ pago.numero_cuota }} — {{ pago.credito.get_tipo_credito_display }}</h4>
+                    <p>{{ pago.fecha|date:"d M Y, H:i" }}</p>
+                </div>
+            </div>
+            <div class="item-right" style="color:var(--danger-color); font-weight:600;">
+                - S/ {{ pago.monto_pagado|floatformat:2 }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state" style="padding:30px 20px;">
+        <i class="bi bi-receipt" style="font-size:2rem;"></i>
+        <p>Aún no has realizado ningún pago de cuota.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.btn-pagar').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        const creditoId = this.dataset.creditoId;
+        const cuota     = this.dataset.cuota;
+        const tipo      = this.dataset.tipo;
+
+        if (!confirm(`¿Confirmas el pago de la cuota de S/ ${parseFloat(cuota).toLocaleString('es-PE', {minimumFractionDigits:2})} del crédito "${tipo}"?`)) return;
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Procesando...';
+
+        fetch(`/creditos/pagar/${creditoId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'success') {
+                showToast('Pago exitoso', data.message, 'success');
+
+                if (data.credito_pagado) {
+                    // Ocultar la tarjeta del crédito ya pagado
+                    const card = document.getElementById('card-credito-' + creditoId);
+                    if (card) {
+                        card.style.transition = 'opacity 0.5s';
+                        card.style.opacity = '0';
+                        setTimeout(() => card.remove(), 500);
+                    }
+                } else {
+                    // Actualizar UI con nuevos valores
+                    document.getElementById('saldo-' + creditoId).textContent =
+                        'S/ ' + parseFloat(data.nuevo_saldo_credito).toLocaleString('es-PE', {minimumFractionDigits:2, maximumFractionDigits:2});
+                    document.getElementById('pct-' + creditoId).textContent = data.progreso + '%';
+                    document.getElementById('bar-' + creditoId).style.width = data.progreso + '%';
+                    document.getElementById('cuotas-pagadas-' + creditoId).textContent = data.cuotas_pagadas;
+
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-cash"></i> Pagar Cuota &nbsp;(S/ ' +
+                        parseFloat(cuota).toLocaleString('es-PE', {minimumFractionDigits:2}) + ')';
+                }
+            } else {
+                showToast('Error', data.message, 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-cash"></i> Pagar Cuota &nbsp;(S/ ' +
+                    parseFloat(cuota).toLocaleString('es-PE', {minimumFractionDigits:2}) + ')';
+            }
+        })
+        .catch(() => {
+            showToast('Error de red', 'No se pudo conectar con el servidor.', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-cash"></i> Pagar Cuota';
+        });
+    });
+});
+</script>
+{% endblock %}
