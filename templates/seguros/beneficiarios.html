@@ -1,0 +1,102 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Gestionar Beneficiarios{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/modules.css' %}">
+<style>
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        color: #333;
+    }
+    .form-group input, .form-group select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 16px;
+    }
+    .form-group input:focus, .form-group select:focus {
+        border-color: #ec4899;
+        outline: none;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="module-welcome">
+    <h1>Beneficiarios <i class="bi bi-people" style="color: #ec4899;"></i></h1>
+    <p>Administra los beneficiarios de tu Seguro de Vida.</p>
+</div>
+
+{% if messages %}
+<div style="margin-bottom: 20px;">
+    {% for message in messages %}
+    <div style="padding: 15px; border-radius: 8px; margin-bottom: 10px; {% if message.tags == 'success' %}background-color: #dcfce7; color: #166534; border-left: 4px solid #16a34a;{% else %}background-color: #fee2e2; color: #991b1b; border-left: 4px solid #dc2626;{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="module-grid">
+    <div class="premium-card">
+        <div class="premium-card-title">
+            <i class="bi bi-person-lines-fill" style="color: #ec4899;"></i> Beneficiarios Actuales
+        </div>
+        
+        <div class="premium-list" style="margin-bottom: 20px;">
+            <div class="premium-list-item">
+                <span>María López (Cónyuge)</span>
+                <span style="font-weight: 600;">50%</span>
+            </div>
+            <div class="premium-list-item">
+                <span>Carlos García (Hijo)</span>
+                <span style="font-weight: 600;">50%</span>
+            </div>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <a href="{% url 'seguros:index' %}" class="btn-premium btn-outline-premium" style="text-decoration: none; border-color: #ec4899; color: #ec4899; display: inline-block;">Volver a Mis Seguros</a>
+        </div>
+    </div>
+    
+    <div class="premium-card">
+        <div class="premium-card-title">
+            <i class="bi bi-person-plus-fill" style="color: #ec4899;"></i> Añadir Beneficiario
+        </div>
+        
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="nombre">Nombre Completo</label>
+                <input type="text" name="nombre" id="nombre" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="parentesco">Parentesco</label>
+                <select name="parentesco" id="parentesco" required>
+                    <option value="conyuge">Cónyuge</option>
+                    <option value="hijo">Hijo/a</option>
+                    <option value="padre">Padre/Madre</option>
+                    <option value="hermano">Hermano/a</option>
+                    <option value="otro">Otro</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="porcentaje">Porcentaje Asignado (%)</label>
+                <input type="number" name="porcentaje" id="porcentaje" min="1" max="100" required>
+            </div>
+            
+            <button type="submit" class="btn-premium btn-primary-premium" style="background: linear-gradient(135deg, #ec4899, #db2777); width: 100%;">Registrar Beneficiario</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

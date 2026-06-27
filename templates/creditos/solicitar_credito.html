@@ -1,0 +1,225 @@
+{% extends 'base_dashboard.html' %}
+
+{% block title %}Solicitar Crédito{% endblock %}
+
+{% block extra_css %}
+<style>
+    .solicitud-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #334155;
+    }
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+        box-sizing: border-box;
+    }
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+    }
+    .btn-submit {
+        width: 100%;
+        padding: 14px;
+        background-color: var(--primary-color);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.3s, transform 0.1s;
+    }
+    .btn-submit:hover {
+        background-color: #1e40af;
+    }
+    .btn-submit:active {
+        transform: scale(0.98);
+    }
+    .alerts {
+        margin-bottom: 20px;
+    }
+    .alert {
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+    .alert-success {
+        background-color: #dcfce7;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+    }
+    .alert-error {
+        background-color: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="welcome-section">
+    <h1>Solicitar un Préstamo</h1>
+    <p>Completa el formulario para evaluar tu solicitud al instante.</p>
+</div>
+
+<div class="glass-panel solicitud-card">
+    <div class="alerts" id="alerts-container"></div>
+
+    {% if cliente %}
+    <div style="background: linear-gradient(135deg, #f0fdf4, #ecfdf5); border-radius: 10px; padding: 16px; margin-bottom: 20px; border: 1px solid #bbf7d0;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <p style="margin: 0; font-size: 0.85rem; color: #166534; font-weight: 600;"><i class="bi bi-person-check"></i> Perfil Financiero</p>
+                <p style="margin: 4px 0 0; font-size: 0.9rem; color: #15803d;">
+                    Ingreso mensual: <strong>S/ {{ cliente.ingresos|floatformat:2 }}</strong>
+                    &nbsp;|&nbsp;
+                    Ingreso diario: <strong>S/ {{ cliente.ingreso_diario }}</strong>
+                </p>
+                <p style="margin: 4px 0 0; font-size: 0.85rem; color: #15803d;">
+                    Score: <strong>{{ cliente.score_crediticio }}</strong> ({{ cliente.semaforo_crediticio }})
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <form method="POST" action="{% url 'creditos:solicitar' %}">
+        {% csrf_token %}
+        
+        <div class="form-group" style="background: #f8fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #3b82f6; margin-bottom: 20px;">
+            <label for="ingreso_mensual" style="color: #1e293b;"><i class="bi bi-cash-coin"></i> Ingreso Mensual Declarado (S/)</label>
+            <p style="font-size: 0.8rem; color: #64748b; margin-top: 0; margin-bottom: 8px;">Esta información está sujeta a verificación por el área de Riesgos.</p>
+            <input type="number" name="ingreso_mensual" id="ingreso_mensual" class="form-control" placeholder="Ej. 2500" min="0" step="10" value="{{ cliente.ingresos|floatformat:0 }}" required style="border-color: #cbd5e1;">
+        </div>
+
+        <div class="form-group">
+            <label for="tipo_credito">Tipo de Crédito</label>
+            <select name="tipo_credito" id="tipo_credito" class="form-control" required>
+                <option value="">Selecciona un tipo...</option>
+                <option value="Personal">Préstamo Personal</option>
+                <option value="Vehicular">Préstamo Vehicular</option>
+                <option value="Hipotecario">Crédito Hipotecario</option>
+                <option value="Negocio">Crédito para Negocio</option>
+                <option value="Microempresa">Crédito Microempresa</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="monto">Monto a solicitar (S/)</label>
+            <input type="number" name="monto" id="monto" class="form-control" placeholder="Ej. 5000" min="500" step="100" required>
+        </div>
+
+        <div class="form-group">
+            <label for="cuotas">Número de Cuotas (Meses)</label>
+            <select name="cuotas" id="cuotas" class="form-control" required>
+                <option value="6">6 Meses</option>
+                <option value="12" selected>12 Meses</option>
+                <option value="18">18 Meses</option>
+                <option value="24">24 Meses</option>
+                <option value="36">36 Meses</option>
+                <option value="48">48 Meses</option>
+                <option value="60">60 Meses</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="cuenta_destino_id"><i class="bi bi-wallet2"></i> Cuenta destino para el desembolso</label>
+            <select name="cuenta_destino_id" id="cuenta_destino_id" class="form-control">
+                {% if cuentas %}
+                    {% for cuenta in cuentas %}
+                    <option value="{{ cuenta.id }}">{{ cuenta.tipo_cuenta }} — N° {{ cuenta.numero_cuenta }} — Saldo: S/ {{ cuenta.saldo|floatformat:2 }}</option>
+                    {% endfor %}
+                {% else %}
+                    <option value="">Se creará una cuenta automáticamente</option>
+                {% endif %}
+            </select>
+            <small style="color: #64748b; font-size: 0.8rem;">Si no tienes cuentas, se creará una automáticamente al aprobar.</small>
+        </div>
+
+        <button type="submit" class="btn-submit" id="btn-submit">
+            <span id="btn-text"><i class="bi bi-send-check"></i> Enviar Solicitud</span>
+            <span id="btn-spinner" style="display: none;"><i class="bi bi-arrow-repeat" style="animation: spin 1s linear infinite; display: inline-block;"></i> Evaluando...</span>
+        </button>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+</style>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const form = document.querySelector("form");
+        const btnSubmit = document.getElementById("btn-submit");
+        const btnText = document.getElementById("btn-text");
+        const btnSpinner = document.getElementById("btn-spinner");
+
+        if(form) {
+            form.addEventListener("submit", function(e) {
+                e.preventDefault();
+                
+                if(btnSubmit.disabled && btnSubmit.style.cursor === "wait") return;
+                
+                btnSubmit.disabled = true;
+                btnSubmit.style.opacity = "0.7";
+                btnSubmit.style.cursor = "wait";
+                btnText.style.display = "none";
+                btnSpinner.style.display = "inline";
+
+                const formData = new FormData(form);
+                
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    btnSubmit.disabled = false;
+                    btnSubmit.style.opacity = "1";
+                    btnSubmit.style.cursor = "pointer";
+                    btnText.style.display = "inline";
+                    btnSpinner.style.display = "none";
+                    
+                    if(data.status === 'success') {
+                        showToast('Préstamo', data.message, 'success');
+                        form.reset();
+                    } else {
+                        showToast('Atención', data.message || 'Error en la solicitud.', 'error');
+                    }
+                })
+                .catch(error => {
+                    btnSubmit.disabled = false;
+                    btnSubmit.style.opacity = "1";
+                    btnSubmit.style.cursor = "pointer";
+                    btnText.style.display = "inline";
+                    btnSpinner.style.display = "none";
+                    showToast('Error de Red', 'No se pudo conectar.', 'error');
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

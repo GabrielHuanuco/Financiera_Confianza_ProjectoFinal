@@ -1,0 +1,78 @@
+GUÍA DE DEMOSTRACIÓN END-TO-END: FINANCIERA CONFIANZA
+=====================================================
+Sigue estos pasos precisos durante tu evaluación para garantizar que el profesor vea que cumples con los 20 puntos de la rúbrica.
+
+PREPARACIÓN (Antes de presentar)
+--------------------------------
+1. Abre tu terminal en la carpeta del proyecto.
+2. Ejecuta: python manage.py makemigrations
+3. Ejecuta: python manage.py migrate
+4. Ejecuta el comando mágico que creamos: python manage.py seed_data
+   (Esto insertará clientes pre-aprobados, cuentas con dinero y créditos en mora para que no tengas que crear todo desde cero en la demo).
+5. Inicia el servidor: python manage.py runserver
+
+PASO 1: DEMOSTRACIÓN DEL HOMEBANKING (CLIENTE) Y JWT
+----------------------------------------------------
+1. Abre el navegador en http://127.0.0.1:8000/auth/
+2. Inicia sesión con las credenciales que se crearon en el seed_data:
+   - DNI: 88880001
+   - Contraseña: testpassword123
+   - Tipo Documento: DNI
+3. Al entrar al Dashboard (Homebanking):
+   * Presiona F12 (Herramientas de Desarrollador), ve a "Application" -> "Cookies".
+   * Muestra la cookie "access_token". Aquí explicas: "La autenticación está asegurada por tokens JWT en HttpOnly, cumpliendo el requerimiento de seguridad".
+4. Pide un préstamo:
+   * Ve a "Pedir Préstamo".
+   * Solicita S/ 60,000 para "Vehicular" (pon un monto alto a propósito para forzar la aprobación de Gerencia).
+   * Ingresa S/ 5,000 de ingresos.
+   * La solicitud quedará en estado "En Evaluación".
+
+PASO 2: DEMOSTRACIÓN DEL CORE BANCARIO Y FLUJO DE APROBACIÓN
+------------------------------------------------------------
+1. Cierra sesión en el Homebanking.
+2. Ve a http://127.0.0.1:8000/core/login/ (El portal exclusivo para trabajadores).
+3. Ingresa con un usuario administrador (crea uno si no lo tienes con createsuperuser, o usa uno que tengas con rol de ADMIN o ASESOR). 
+   *Nota: si no tienes, crea uno en terminal: python manage.py createsuperuser, luego entra al admin nativo de Django (/admin) y asegúrate que tenga un perfil de Cliente con rol="ADMIN" o "ASESOR".
+4. Como ASESOR:
+   * Ve la solicitud de 60,000 en el panel principal.
+   * Haz clic en "Derivar a Riesgos".
+5. Cambia a RIESGOS (si tienes sesión de Admin puedes hacerlo, o ingresa con un usuario Riesgos):
+   * Aquí explica: "El sistema valida elegibilidad, scoring y calcula el Ratio de Servicio de Deuda (RDS)".
+   * Aprueba la solicitud y mándala a Comité.
+6. Cambia a COMITÉ:
+   * Aprueba la solicitud. Explica: "Como el monto es mayor a 50,000, la ruta de aprobación exige que vaya a Gerencia".
+7. Cambia a GERENCIA:
+   * Aprueba definitivamente la solicitud.
+8. Vuelve a ASESOR:
+   * Ahora el crédito aparece como "Aprobado".
+   * Haz clic en "Desembolsar".
+
+PASO 3: DEMOSTRACIÓN DE DESEMBOLSO Y CRONOGRAMA DE PAGOS
+--------------------------------------------------------
+1. Cierra sesión en el Core Bancario y vuelve a loguearte en el Homebanking como el cliente (DNI 88880001).
+2. En el Dashboard verás que:
+   * El saldo de tu cuenta de ahorros subió en 60,000 soles.
+   * Tienes una notificación de desembolso.
+3. Ve a la sección de "Mis Créditos".
+4. Muestra el botón "Cronograma":
+   * Haz clic en él y se abrirá el modal.
+   * Explica: "El sistema genera el cronograma usando el Sistema de Amortización Francés, dividiendo capital, interés y saldo final cuota a cuota".
+5. Realiza el pago de la primera cuota usando el botón "Pagar Cuota" y muestra cómo el cronograma se actualiza a "PAGADO" para la cuota 1 y el saldo de la cuenta bancaria baja automáticamente.
+
+PASO 4: DEMOSTRACIÓN DE RECUPERACIONES Y MORA (CRITERIO 4)
+----------------------------------------------------------
+1. Cierra sesión y entra al Core Bancario (http://127.0.0.1:8000/core/login/) como GERENCIA o ADMIN.
+2. Ve al módulo de "Recuperaciones y Mora" en el menú lateral.
+3. Gracias al script "seed_data", verás en la bandeja créditos que ya están vencidos.
+   * Habrá un crédito en banda "Castigo" (>180 días).
+   * Explica las bandas: Preventiva (1-30), Temprana (31-60), Tardía (61-120), Judicial (121-180), Castigo (>180).
+4. Elige un crédito moroso:
+   * Registra una gestión (ej. "Llamada - Promesa de Pago").
+   * Explica que si el crédito pasa de 121 días, el botón "Judicializar" se habilita. Si pasa de 180, se habilita "Castigar". Intenta castigar uno que no cumpla los días para que el sistema arroje el error y muestre que los umbrales están validados en backend.
+
+PASO 5: DEMOSTRACIÓN TÉCNICA
+----------------------------
+1. Muestra la carpeta `scripts_sql/` en tu editor de código. Explica que ahí están los scripts de base de datos versionados.
+2. Muestra el archivo `README.md` donde está el diagrama UML y las Historias de Usuario.
+
+Con estos pasos demuestras todos y cada uno de los puntos que exige la rúbrica de forma fluida.

@@ -1,0 +1,146 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Transferencias{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/modules.css' %}">
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="module-welcome">
+    <h1>Transferencias <i class="bi bi-arrow-left-right" style="color: #8b5cf6;"></i></h1>
+    <p>Envía dinero de forma rápida y segura a nivel nacional e internacional.</p>
+</div>
+
+<div class="module-grid">
+    <!-- Nueva Transferencia -->
+    <div class="premium-card">
+        <div class="premium-card-title">
+            <i class="bi bi-send-fill" style="color: #8b5cf6;"></i> Nueva Transferencia
+        </div>
+        
+        <div class="alerts" id="alerts-container"></div>
+
+        <form id="transfer-form" method="POST" action="{% url 'transferencias:index' %}" style="margin-top: 20px;">
+            {% csrf_token %}
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 5px;">Cuenta Origen</label>
+                <select name="cuenta_origen" id="cuenta_origen" style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; font-family: inherit;" required>
+                    <option value="">Seleccione una cuenta</option>
+                    {% for cuenta in cuentas %}
+                        <option value="{{ cuenta.id }}">{{ cuenta.tipo_cuenta }} - {{ cuenta.numero_cuenta }} (S/ {{ cuenta.saldo }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 5px;">Cuenta Destino / Celular</label>
+                <input type="text" name="cuenta_destino" id="cuenta_destino" placeholder="Ej. 987654321 o CCI" style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; font-family: inherit;" required>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 5px;">Monto (S/)</label>
+                <input type="number" name="monto" id="monto" placeholder="0.00" step="0.01" min="1" style="width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; font-family: inherit; font-size: 1.2rem; font-weight: 600;" required>
+            </div>
+            
+            <button type="submit" id="btn-submit" class="btn-premium btn-primary-premium" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); position: relative;">
+                <span id="btn-text">Transferir Ahora</span>
+                <span id="btn-spinner" style="display: none;"><i class="bi bi-arrow-repeat" style="animation: spin 1s linear infinite; display: inline-block;"></i> Procesando...</span>
+            </button>
+        </form>
+    </div>
+
+    <!-- Contactos Frecuentes -->
+    <div class="premium-card">
+        <div class="premium-card-title">
+            <i class="bi bi-people-fill" style="color: #8b5cf6;"></i> Contactos Frecuentes
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; text-align: center;">
+            <div style="cursor: pointer; padding: 10px; border-radius: 12px; transition: background 0.3s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
+                <div style="width: 50px; height: 50px; border-radius: 50%; background: #e0e7ff; color: #4f46e5; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin: 0 auto 10px auto; font-weight: 700;">M</div>
+                <p style="font-size: 0.85rem; font-weight: 600; margin: 0;">Mamá</p>
+            </div>
+            <div style="cursor: pointer; padding: 10px; border-radius: 12px; transition: background 0.3s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
+                <div style="width: 50px; height: 50px; border-radius: 50%; background: #fce7f3; color: #db2777; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin: 0 auto 10px auto; font-weight: 700;">R</div>
+                <p style="font-size: 0.85rem; font-weight: 600; margin: 0;">Roberto</p>
+            </div>
+            <div style="cursor: pointer; padding: 10px; border-radius: 12px; transition: background 0.3s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
+                <div style="width: 50px; height: 50px; border-radius: 50%; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin: 0 auto 10px auto; font-weight: 700;">A</div>
+                <p style="font-size: 0.85rem; font-weight: 600; margin: 0;">Alquiler</p>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <button class="btn-premium btn-outline-premium" style="border-color: #8b5cf6; color: #8b5cf6;">Ver todos los contactos</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+</style>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const form = document.getElementById("transfer-form");
+        const btnSubmit = document.getElementById("btn-submit");
+        const btnText = document.getElementById("btn-text");
+        const btnSpinner = document.getElementById("btn-spinner");
+
+        if(form) {
+            form.addEventListener("submit", function(e) {
+                e.preventDefault();
+                
+                if(btnSubmit.disabled) return;
+                
+                btnSubmit.disabled = true;
+                btnSubmit.style.opacity = "0.7";
+                btnText.style.display = "none";
+                btnSpinner.style.display = "inline";
+
+                const formData = new FormData(form);
+                
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    btnSubmit.disabled = false;
+                    btnSubmit.style.opacity = "1";
+                    btnText.style.display = "inline";
+                    btnSpinner.style.display = "none";
+                    
+                    if(data.status === 'success') {
+                        if(typeof showToast !== 'undefined') {
+                            showToast('Éxito', data.message, 'success');
+                        } else {
+                            alert(data.message);
+                        }
+                        // Recargar para actualizar saldos, o se podría hacer dinámico
+                        setTimeout(() => window.location.reload(), 1500);
+                    } else {
+                        if(typeof showToast !== 'undefined') {
+                            showToast('Error', data.message || 'Error al procesar la transferencia.', 'error');
+                        } else {
+                            alert(data.message || 'Error al procesar la transferencia.');
+                        }
+                    }
+                })
+                .catch(error => {
+                    btnSubmit.disabled = false;
+                    btnSubmit.style.opacity = "1";
+                    btnText.style.display = "inline";
+                    btnSpinner.style.display = "none";
+                    alert('No se pudo conectar con el servidor.');
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

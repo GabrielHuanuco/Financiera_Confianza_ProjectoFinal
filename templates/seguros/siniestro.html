@@ -1,0 +1,79 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Reportar Siniestro{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/modules.css' %}">
+<style>
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        color: #333;
+    }
+    .form-group input, .form-group textarea, .form-group select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 16px;
+    }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+        border-color: #6366f1;
+        outline: none;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="module-welcome">
+    <h1>Reportar Siniestro <i class="bi bi-exclamation-triangle" style="color: #ef4444;"></i></h1>
+    <p>Estamos aquí para ayudarte. Por favor completa los detalles del incidente.</p>
+</div>
+
+{% if messages %}
+<div style="margin-bottom: 20px;">
+    {% for message in messages %}
+    <div style="padding: 15px; border-radius: 8px; margin-bottom: 10px; {% if message.tags == 'success' %}background-color: #dcfce7; color: #166534; border-left: 4px solid #16a34a;{% else %}background-color: #fee2e2; color: #991b1b; border-left: 4px solid #dc2626;{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="premium-card" style="max-width: 600px;">
+    <div class="premium-card-title">
+        <i class="bi bi-journal-text" style="color: #6366f1;"></i> Formulario de Reporte
+    </div>
+    
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="poliza">Seleccionar Póliza</label>
+            <select name="poliza" id="poliza" required>
+                <option value="vehicular">Seguro Vehicular (Toyota Yaris - ABC-123)</option>
+                <option value="vida">Seguro de Vida (Plan Familiar)</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="fecha">Fecha del Incidente</label>
+            <input type="date" name="fecha" id="fecha" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="descripcion">Descripción del Siniestro</label>
+            <textarea name="descripcion" id="descripcion" rows="4" required placeholder="Describe brevemente lo sucedido..."></textarea>
+        </div>
+        
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+            <button type="submit" class="btn-premium btn-primary-premium" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">Enviar Reporte</button>
+            <a href="{% url 'seguros:index' %}" class="btn-premium btn-outline-premium" style="text-decoration: none; padding: 10px 20px;">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

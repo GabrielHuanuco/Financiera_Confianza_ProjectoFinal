@@ -1,0 +1,772 @@
+{% extends 'base_dashboard.html' %}
+
+{% block title %}Recuperaciones y Mora{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ─── KPI Cards ────────────────────────────────────────────── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .kpi-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 20px 24px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    border-left: 5px solid var(--primary-color, #0057B8);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .kpi-card.kpi-danger  { border-left-color: #ef4444; }
+  .kpi-card.kpi-warn    { border-left-color: #f59e0b; }
+  .kpi-card.kpi-info    { border-left-color: #3b82f6; }
+  .kpi-card.kpi-dark    { border-left-color: #475569; }
+
+  .kpi-label { font-size: 0.78rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .kpi-value { font-size: 2rem; font-weight: 800; color: #0f172a; line-height: 1; }
+  .kpi-sub   { font-size: 0.8rem; color: #94a3b8; }
+
+  /* ─── Bandas / Tabs ────────────────────────────────────────── */
+  .bandas-tabs {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .banda-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: 2px solid transparent;
+    transition: all 0.18s;
+    cursor: pointer;
+  }
+
+  .banda-tab.active { box-shadow: 0 0 0 2px rgba(0,0,0,0.15); }
+  .banda-tab-todas    { background: #f1f5f9; color: #334155; border-color: #cbd5e1; }
+  .banda-tab-preventiva { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+  .banda-tab-temprana   { background: #fef3c7; color: #d97706; border-color: #fcd34d; }
+  .banda-tab-tardia     { background: #ffedd5; color: #c2410c; border-color: #fdba74; }
+  .banda-tab-judicial   { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+  .banda-tab-castigo    { background: #f1f5f9; color: #475569; border-color: #94a3b8; }
+
+  /* ─── Tabla ────────────────────────────────────────────────── */
+  .tabla-mora {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+
+  .tabla-mora th {
+    background: #f8fafc;
+    color: #64748b;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 12px 14px;
+    border-bottom: 2px solid #e2e8f0;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .tabla-mora td {
+    padding: 14px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+    color: #334155;
+  }
+
+  .tabla-mora tr:hover td { background: #f8fafc; }
+
+  /* ─── Badges de mora ───────────────────────────────────────── */
+  .badge-mora {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+  }
+
+  .badge-verde    { background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
+  .badge-azul     { background: #dbeafe; color: #1d4ed8; border: 1px solid #93c5fd; }
+  .badge-amarillo { background: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
+  .badge-naranja  { background: #ffedd5; color: #c2410c; border: 1px solid #fdba74; }
+  .badge-rojo     { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+  .badge-gris     { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+
+  .badge-judicial { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+  .badge-castigo  { background: #f1f5f9; color: #475569; border: 1px solid #94a3b8; }
+  .badge-normal   { background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
+
+  /* ─── Botones de acción ────────────────────────────────────── */
+  .btn-act {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 7px;
+    border: none;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: white;
+    text-decoration: none;
+    transition: opacity 0.15s, transform 0.12s;
+    white-space: nowrap;
+  }
+
+  .btn-act:hover  { opacity: 0.88; transform: translateY(-1px); }
+  .btn-act:active { transform: scale(0.97); }
+
+  .btn-gestion   { background: #3b82f6; }
+  .btn-judicial  { background: #ef4444; }
+  .btn-castigo   { background: #475569; }
+  .btn-detalle   { background: #64748b; }
+  .btn-disabled  { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; }
+
+  /* ─── Modal de Gestión ─────────────────────────────────────── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(3px);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.active { display: flex; }
+
+  .modal-box {
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px;
+    width: 90%;
+    max-width: 520px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    position: relative;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+
+  .modal-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    font-size: 1.4rem;
+    color: #94a3b8;
+    cursor: pointer;
+    background: none;
+    border: none;
+    line-height: 1;
+  }
+
+  .modal-close:hover { color: #334155; }
+
+  .form-field { margin-bottom: 16px; }
+  .form-field label { display: block; font-size: 0.85rem; font-weight: 600; color: #475569; margin-bottom: 6px; }
+  .form-field select,
+  .form-field textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    color: #334155;
+    transition: border-color 0.2s;
+    resize: vertical;
+  }
+  .form-field select:focus,
+  .form-field textarea:focus {
+    border-color: #3b82f6;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+  }
+
+  .btn-submit-modal {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    border: none;
+    border-radius: 9px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.18s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .btn-submit-modal:hover { opacity: 0.9; }
+
+  /* ─── Info del crédito en modal ────────────────────────────── */
+  .credito-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 14px;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+  }
+
+  .ci-item { display: flex; flex-direction: column; gap: 2px; }
+  .ci-label { font-size: 0.72rem; color: #94a3b8; font-weight: 600; text-transform: uppercase; }
+  .ci-value { font-size: 0.9rem; color: #1e293b; font-weight: 600; }
+
+  /* ─── Historial de gestiones (modal detalle) ───────────────── */
+  .gestion-item {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    background: #fafafa;
+  }
+
+  .gestion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .gestion-rol-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background: #e0f2fe;
+    color: #0369a1;
+    text-transform: uppercase;
+  }
+
+  .gestion-fecha { font-size: 0.72rem; color: #94a3b8; }
+  .gestion-resultado { font-size: 0.82rem; font-weight: 600; color: #475569; }
+  .gestion-comentario { font-size: 0.85rem; color: #334155; margin-top: 4px; font-style: italic; }
+
+  /* ─── Empty state ──────────────────────────────────────────── */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #94a3b8;
+  }
+
+  .empty-state i { font-size: 3rem; display: block; margin-bottom: 16px; }
+  .empty-state h3 { font-size: 1.1rem; color: #475569; margin-bottom: 8px; }
+
+  /* ─── Días de mora highlight ───────────────────────────────── */
+  .dias-mora-num {
+    font-size: 1.4rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .dias-mora-label {
+    font-size: 0.68rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+  }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+
+<!-- ── Encabezado ─────────────────────────────────────────── -->
+<div class="welcome-section">
+  <h1>Recuperaciones y Mora 📋</h1>
+  <p>Gestión de cartera morosa — clasificación por bandas, cobranza y escalamientos judiciales.</p>
+</div>
+
+{% if messages %}
+<div style="margin-bottom: 20px;">
+  {% for message in messages %}
+  <div style="padding: 14px 18px; border-radius: 8px; margin-bottom: 10px;
+    {% if message.tags == 'success' %}background:#dcfce7;color:#166534;border-left:4px solid #16a34a;
+    {% else %}background:#fee2e2;color:#991b1b;border-left:4px solid #dc2626;{% endif %}">
+    {{ message }}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- ── KPIs ───────────────────────────────────────────────── -->
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-label">Total Créditos Morosos</div>
+    <div class="kpi-value">{{ kpis.total_creditos }}</div>
+    <div class="kpi-sub">Créditos desembolsados con atraso</div>
+  </div>
+  <div class="kpi-card kpi-warn">
+    <div class="kpi-label">Clientes con Mora</div>
+    <div class="kpi-value">{{ kpis.total_clientes }}</div>
+    <div class="kpi-sub">Clientes afectados</div>
+  </div>
+  <div class="kpi-card kpi-danger">
+    <div class="kpi-label">Monto Total Vencido</div>
+    <div class="kpi-value" style="font-size:1.4rem;">S/ {{ kpis.monto_vencido|floatformat:2 }}</div>
+    <div class="kpi-sub">Saldo pendiente total en mora</div>
+  </div>
+  <div class="kpi-card kpi-info">
+    <div class="kpi-label">Preventiva (1-30d)</div>
+    <div class="kpi-value" style="color:#1d4ed8;">{{ kpis.conteo_bandas.PREVENTIVA }}</div>
+    <div class="kpi-sub">Casos tempranos</div>
+  </div>
+  <div class="kpi-card kpi-warn">
+    <div class="kpi-label">Temprana (31-60d)</div>
+    <div class="kpi-value" style="color:#d97706;">{{ kpis.conteo_bandas.TEMPRANA }}</div>
+    <div class="kpi-sub">Casos intermedios</div>
+  </div>
+  <div class="kpi-card kpi-danger">
+    <div class="kpi-label">Tardía + Judicial</div>
+    <div class="kpi-value" style="color:#dc2626;">{{ kpis.conteo_bandas.TARDIA|add:kpis.conteo_bandas.JUDICIAL }}</div>
+    <div class="kpi-sub">Riesgo alto</div>
+  </div>
+  <div class="kpi-card kpi-dark">
+    <div class="kpi-label">Castigo (+180d)</div>
+    <div class="kpi-value" style="color:#475569;">{{ kpis.conteo_bandas.CASTIGO }}</div>
+    <div class="kpi-sub">Cartera castigada</div>
+  </div>
+</div>
+
+<!-- ── Filtros por Banda ──────────────────────────────────── -->
+<div class="bandas-tabs">
+  {% for banda in bandas_disponibles %}
+  <a href="?banda={{ banda }}"
+     class="banda-tab banda-tab-{{ banda|lower }}
+            {% if banda_filtro == banda %}active{% endif %}"
+     id="tab-{{ banda|lower }}">
+    {% if banda == 'TODAS' %}🔍 Todas
+    {% elif banda == 'PREVENTIVA' %}🔵 Preventiva
+    {% elif banda == 'TEMPRANA' %}🟡 Temprana
+    {% elif banda == 'TARDIA' %}🟠 Tardía
+    {% elif banda == 'JUDICIAL' %}🔴 Judicial
+    {% elif banda == 'CASTIGO' %}⚫ Castigo
+    {% endif %}
+    {% if banda != 'TODAS' %}
+      <span style="background:rgba(0,0,0,0.12);padding:1px 7px;border-radius:10px;font-size:0.7rem;">
+        {{ kpis.conteo_bandas|default_if_none:0 }}
+        {% if banda == 'PREVENTIVA' %}{{ kpis.conteo_bandas.PREVENTIVA }}
+        {% elif banda == 'TEMPRANA' %}{{ kpis.conteo_bandas.TEMPRANA }}
+        {% elif banda == 'TARDIA' %}{{ kpis.conteo_bandas.TARDIA }}
+        {% elif banda == 'JUDICIAL' %}{{ kpis.conteo_bandas.JUDICIAL }}
+        {% elif banda == 'CASTIGO' %}{{ kpis.conteo_bandas.CASTIGO }}
+        {% endif %}
+      </span>
+    {% endif %}
+  </a>
+  {% endfor %}
+</div>
+
+<!-- ── Tabla de Cartera Morosa ────────────────────────────── -->
+<div class="card">
+  <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+    <h3 class="card-title" style="margin: 0;">
+      <i class="bi bi-exclamation-triangle-fill" style="color:#f59e0b;"></i>
+      Cartera Morosa
+      {% if banda_filtro != 'TODAS' %}— Banda: {{ banda_filtro }}{% endif %}
+      <span style="font-size:0.8rem;font-weight:400;color:#64748b;">({{ cartera|length }} créditos)</span>
+    </h3>
+    <div style="display: flex; gap: 10px;">
+        <input type="text" id="mora-search" placeholder="Buscar por DNI o Nombre..." style="padding: 8px; border-radius: 6px; border: 1px solid #334155; background-color: #0f172a; color: #f8fafc; min-width: 250px;">
+    </div>
+  </div>
+
+  {% if cartera %}
+  <div class="table-container">
+    <table class="tabla-mora" id="tabla-mora-principal">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Cliente / DNI</th>
+          <th>Tipo de Crédito</th>
+          <th>Mora</th>
+          <th>Banda</th>
+          <th>Saldo Pendiente</th>
+          <th>Estado</th>
+          <th>Última Gestión</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in cartera %}
+        <tr>
+          <!-- # Crédito -->
+          <td style="font-weight:700;color:#64748b;">#{{ item.credito.id }}</td>
+
+          <!-- Cliente -->
+          <td>
+            <strong>{{ item.cliente.usuario.get_full_name }}</strong>
+            <br><small style="color:#64748b;">DNI: {{ item.cliente.dni }}</small>
+          </td>
+
+          <!-- Tipo -->
+          <td>
+            <span style="font-weight:600;">{{ item.credito.tipo_credito }}</span>
+            <br><small style="color:#64748b;">{{ item.credito.cuotas_pagadas }}/{{ item.credito.cuotas }} cuotas</small>
+          </td>
+
+          <!-- Días de mora -->
+          <td style="text-align:center;">
+            <div class="dias-mora-num" style="color:{{ item.banda_color }};">
+              {{ item.dias_mora }}
+            </div>
+            <div class="dias-mora-label">días</div>
+          </td>
+
+          <!-- Banda -->
+          <td>
+            <span class="badge-mora {{ item.banda_badge }}">
+              {{ item.banda_label }}
+            </span>
+          </td>
+
+          <!-- Monto vencido -->
+          <td style="font-weight:700;color:#dc2626;">
+            S/ {{ item.monto_vencido|floatformat:2 }}
+            <br><small style="color:#94a3b8;font-weight:400;">Cuota: S/ {{ item.credito.cuota_mensual|floatformat:2 }}</small>
+          </td>
+
+          <!-- Estado judicial -->
+          <td>
+            {% if item.estado_judicial == 'JUDICIAL' %}
+              <span class="badge-mora badge-judicial">⚖️ Judicial</span>
+            {% elif item.estado_judicial == 'CASTIGO' %}
+              <span class="badge-mora badge-castigo">💀 Castigo</span>
+            {% else %}
+              <span class="badge-mora badge-normal">✓ Normal</span>
+            {% endif %}
+          </td>
+
+          <!-- Última gestión -->
+          <td>
+            {% if item.ultima_gestion %}
+              <span style="font-size:0.8rem;color:#334155;">
+                {{ item.ultima_gestion.get_resultado_display }}
+              </span>
+              <br>
+              <small style="color:#94a3b8;">{{ item.ultima_gestion.fecha|date:"d/m/Y" }}</small>
+            {% else %}
+              <small style="color:#94a3b8;font-style:italic;">Sin gestión</small>
+            {% endif %}
+          </td>
+
+          <!-- Acciones -->
+          <td>
+            <div style="display:flex;flex-direction:column;gap:5px;">
+              <!-- Ver detalle/historial -->
+              <button class="btn-act btn-detalle"
+                onclick="verDetalle({{ item.credito.id }})"
+                id="btn-detalle-{{ item.credito.id }}"
+                title="Ver historial de gestiones">
+                <i class="bi bi-clock-history"></i> Historial
+              </button>
+
+              <!-- Registrar gestión -->
+              <button class="btn-act btn-gestion"
+                onclick="abrirModalGestion({{ item.credito.id }}, '{{ item.cliente.usuario.get_full_name }}', {{ item.dias_mora }}, '{{ item.banda_label }}')"
+                id="btn-gestion-{{ item.credito.id }}"
+                title="Registrar gestión de cobranza">
+                <i class="bi bi-pencil-fill"></i> Gestionar
+              </button>
+
+              {% if rol in 'GERENCIA,ADMIN' %}
+              <!-- Judicializar -->
+              {% if item.puede_judicializar and item.estado_judicial != 'JUDICIAL' and item.estado_judicial != 'CASTIGO' %}
+              <button class="btn-act btn-judicial"
+                onclick="confirmarAccion('judicializar', {{ item.credito.id }}, '{{ item.dias_mora }}')"
+                id="btn-judicial-{{ item.credito.id }}"
+                title="Pasar a estado Judicial">
+                <i class="bi bi-gavel"></i> Judicializar
+              </button>
+              {% elif not item.puede_judicializar %}
+              <button class="btn-act btn-disabled" disabled
+                title="Requiere mínimo 121 días de mora">
+                <i class="bi bi-gavel"></i> ({{ item.dias_mora }}d/121d)
+              </button>
+              {% endif %}
+
+              <!-- Castigar -->
+              {% if item.puede_castigar and item.estado_judicial != 'CASTIGO' %}
+              <button class="btn-act btn-castigo"
+                onclick="confirmarAccion('castigar', {{ item.credito.id }}, '{{ item.dias_mora }}')"
+                id="btn-castigo-{{ item.credito.id }}"
+                title="Castigar cartera">
+                <i class="bi bi-x-octagon-fill"></i> Castigar
+              </button>
+              {% endif %}
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% else %}
+  <div class="empty-state">
+    <i class="bi bi-check2-circle" style="color:#10b981;"></i>
+    <h3>Sin créditos morosos{% if banda_filtro != 'TODAS' %} en banda {{ banda_filtro }}{% endif %}</h3>
+    <p>No se encontraron créditos con mora en esta categoría.</p>
+  </div>
+  {% endif %}
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL: Registrar Gestión de Cobranza
+════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modalGestion">
+  <div class="modal-box">
+    <button class="modal-close" onclick="cerrarModal('modalGestion')">&times;</button>
+    <div class="modal-title">
+      <i class="bi bi-pencil-square" style="color:#3b82f6;"></i>
+      Nueva Gestión de Cobranza
+    </div>
+
+    <!-- Info del crédito -->
+    <div class="credito-info-grid" id="gestion-info-grid">
+      <div class="ci-item"><div class="ci-label">Cliente</div><div class="ci-value" id="gi-cliente">—</div></div>
+      <div class="ci-item"><div class="ci-label">Días de Mora</div><div class="ci-value" id="gi-dias">—</div></div>
+      <div class="ci-item"><div class="ci-label">Banda</div><div class="ci-value" id="gi-banda">—</div></div>
+      <div class="ci-item"><div class="ci-label">Crédito #</div><div class="ci-value" id="gi-id">—</div></div>
+    </div>
+
+    <form method="POST" action="" id="formGestion">
+      {% csrf_token %}
+      <div class="form-field">
+        <label for="g-resultado">Resultado de la Gestión *</label>
+        <select name="resultado" id="g-resultado" required>
+          <option value="">— Selecciona el resultado —</option>
+          <option value="LLAMADA">📞 Llamada realizada</option>
+          <option value="PROMESA_PAGO">🤝 Cliente promete pago</option>
+          <option value="CORREO">📧 Correo enviado</option>
+          <option value="VISITA">🚪 Visita realizada</option>
+          <option value="SIN_CONTACTO">❌ Sin contacto</option>
+          <option value="PAGO_PARCIAL">💰 Pago parcial recibido</option>
+          <option value="ACUERDO_PAGO">📋 Acuerdo de pago suscrito</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label for="g-comentario">Comentario / Observaciones *</label>
+        <textarea name="comentario" id="g-comentario" rows="4"
+          placeholder="Describe detalladamente la gestión realizada..."
+          required></textarea>
+      </div>
+      <button type="submit" class="btn-submit-modal">
+        <i class="bi bi-check-lg"></i> Registrar Gestión
+      </button>
+    </form>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL: Historial de Gestiones
+════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modalDetalle">
+  <div class="modal-box">
+    <button class="modal-close" onclick="cerrarModal('modalDetalle')">&times;</button>
+    <div class="modal-title">
+      <i class="bi bi-clock-history" style="color:#64748b;"></i>
+      Historial de Gestiones
+    </div>
+    <div id="detalle-loading" style="text-align:center;padding:30px;color:#94a3b8;">
+      <i class="bi bi-arrow-repeat" style="font-size:1.5rem;"></i> Cargando...
+    </div>
+    <div id="detalle-content" style="display:none;"></div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     MODAL: Confirmar Acción (Judicializar / Castigar)
+════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modalAccion">
+  <div class="modal-box">
+    <button class="modal-close" onclick="cerrarModal('modalAccion')">&times;</button>
+    <div class="modal-title" id="modal-accion-titulo">
+      <i class="bi bi-exclamation-triangle-fill" style="color:#ef4444;"></i>
+      Confirmar Acción
+    </div>
+    <p id="modal-accion-desc" style="color:#475569;margin-bottom:20px;font-size:0.92rem;"></p>
+
+    <form method="POST" action="" id="formAccion">
+      {% csrf_token %}
+      <div class="form-field">
+        <label for="a-observacion">Observación / Resolución (requerida)</label>
+        <textarea name="observacion" id="a-observacion" rows="3"
+          placeholder="Describe el motivo de esta acción..." required></textarea>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button type="submit" id="btn-accion-confirm"
+          style="flex:1;padding:12px;background:#ef4444;color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+          <i class="bi bi-check-lg"></i> Confirmar
+        </button>
+        <button type="button" onclick="cerrarModal('modalAccion')"
+          style="flex:1;padding:12px;background:#f1f5f9;color:#475569;border:none;border-radius:8px;font-weight:700;cursor:pointer;">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // ── Abrir/Cerrar modales ───────────────────────────────────
+  function cerrarModal(id) {
+    document.getElementById(id).classList.remove('active');
+  }
+
+  // Cerrar al hacer click fuera
+  document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', function(e) {
+      if (e.target === m) m.classList.remove('active');
+    });
+  });
+
+  // ── Modal Gestión ──────────────────────────────────────────
+  function abrirModalGestion(creditoId, clienteNombre, diasMora, bandaLabel) {
+    document.getElementById('gi-cliente').textContent = clienteNombre;
+    document.getElementById('gi-dias').textContent = diasMora + ' días';
+    document.getElementById('gi-banda').textContent = bandaLabel;
+    document.getElementById('gi-id').textContent = '#' + creditoId;
+    document.getElementById('formGestion').action = '/core/recuperaciones/gestion/' + creditoId + '/';
+    document.getElementById('g-resultado').value = '';
+    document.getElementById('g-comentario').value = '';
+    document.getElementById('modalGestion').classList.add('active');
+  }
+
+  // ── Modal Detalle/Historial ────────────────────────────────
+  function verDetalle(creditoId) {
+    const modal    = document.getElementById('modalDetalle');
+    const loading  = document.getElementById('detalle-loading');
+    const content  = document.getElementById('detalle-content');
+
+    loading.style.display = 'block';
+    content.style.display = 'none';
+    modal.classList.add('active');
+
+    fetch('/core/recuperaciones/detalle/' + creditoId + '/')
+      .then(r => r.json())
+      .then(data => {
+        let html = `
+          <div class="credito-info-grid">
+            <div class="ci-item"><div class="ci-label">Cliente</div><div class="ci-value">${data.cliente}</div></div>
+            <div class="ci-item"><div class="ci-label">DNI</div><div class="ci-value">${data.dni}</div></div>
+            <div class="ci-item"><div class="ci-label">Crédito</div><div class="ci-value">${data.tipo_credito} #${data.credito_id}</div></div>
+            <div class="ci-item"><div class="ci-label">Días de Mora</div>
+              <div class="ci-value" style="color:#ef4444;font-size:1.4rem;">${data.dias_mora}d</div></div>
+            <div class="ci-item"><div class="ci-label">Saldo Pendiente</div><div class="ci-value">S/ ${parseFloat(data.saldo_pendiente).toFixed(2)}</div></div>
+            <div class="ci-item"><div class="ci-label">Cuotas</div><div class="ci-value">${data.cuotas_pagadas}/${data.cuotas_total} pagadas</div></div>
+          </div>`;
+
+        if (data.gestiones.length > 0) {
+          html += '<h4 style="font-size:0.85rem;color:#475569;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.05em;">Últimas 10 Gestiones</h4>';
+          data.gestiones.forEach(g => {
+            html += `
+              <div class="gestion-item">
+                <div class="gestion-header">
+                  <span class="gestion-rol-badge">${g.rol}</span>
+                  <span class="gestion-fecha">${g.fecha}</span>
+                </div>
+                <div class="gestion-resultado">📌 ${g.resultado}</div>
+                <div class="gestion-comentario">${g.comentario}</div>
+                <small style="color:#94a3b8;margin-top:6px;display:block;">
+                  ${g.dias_mora} días de mora — Banda: ${g.banda}
+                </small>
+              </div>`;
+          });
+        } else {
+          html += '<div class="empty-state"><i class="bi bi-inbox"></i><h3>Sin gestiones registradas</h3><p>Este crédito aún no tiene gestiones de cobranza.</p></div>';
+        }
+
+        content.innerHTML = html;
+        loading.style.display = 'none';
+        content.style.display = 'block';
+      })
+      .catch(() => {
+        content.innerHTML = '<p style="color:#ef4444;text-align:center;">Error al cargar el detalle.</p>';
+        loading.style.display = 'none';
+        content.style.display = 'block';
+      });
+  }
+
+  // ── Modal Confirmación de Acción ───────────────────────────
+  function confirmarAccion(tipo, creditoId, diasMora) {
+    const modal = document.getElementById('modalAccion');
+    const titulo = document.getElementById('modal-accion-titulo');
+    const desc   = document.getElementById('modal-accion-desc');
+    const form   = document.getElementById('formAccion');
+    const btnConf = document.getElementById('btn-accion-confirm');
+
+    if (tipo === 'judicializar') {
+      titulo.innerHTML = '<i class="bi bi-gavel" style="color:#ef4444;"></i> Confirmar Judicialización';
+      desc.textContent = `¿Estás seguro de judicializar el crédito #${creditoId}? El crédito tiene ${diasMora} días de mora (≥ 121 requeridos). Esta acción quedará registrada en el historial.`;
+      form.action = '/core/recuperaciones/judicializar/' + creditoId + '/';
+      btnConf.style.background = '#ef4444';
+    } else {
+      titulo.innerHTML = '<i class="bi bi-x-octagon-fill" style="color:#475569;"></i> Confirmar Castigo de Cartera';
+      desc.textContent = `¿Estás seguro de castigar el crédito #${creditoId}? El crédito tiene ${diasMora} días de mora (> 180 requeridos). La deuda será registrada como cartera castigada. Esta acción es irreversible.`;
+      form.action = '/core/recuperaciones/castigar/' + creditoId + '/';
+      btnConf.style.background = '#475569';
+    }
+
+    document.getElementById('a-observacion').value = '';
+    modal.classList.add('active');
+  }
+
+  // ── Filtro en Vivo (Buscador) ─────────────────────────────
+  const searchMora = document.getElementById('mora-search');
+  if (searchMora) {
+    searchMora.addEventListener('input', function(e) {
+      const term = e.target.value.toLowerCase().trim();
+      const terms = term.split(/\s+/);
+      const rows = document.querySelectorAll('#tabla-mora-principal tbody tr');
+      
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        const matches = terms.every(t => text.includes(t));
+        row.style.display = matches ? '' : 'none';
+      });
+    });
+  }
+</script>
+{% endblock %}

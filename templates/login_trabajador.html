@@ -1,0 +1,258 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Financiera Confianza — Acceso Trabajadores</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'css/login.css' %}">
+  <style>
+    /* ── Badge de rol trabajador ─────────────────────────────── */
+    .badge-trabajador {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 165, 0, 0.15);
+      border: 1px solid rgba(255, 165, 0, 0.40);
+      color: #ffb347;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 4px;
+    }
+    .badge-trabajador svg {
+      flex-shrink: 0;
+    }
+
+    /* ── Subtítulo de acceso restringido ─────────────────────── */
+    .aviso-restringido {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.45);
+      text-align: center;
+      margin-top: -8px;
+      margin-bottom: 4px;
+    }
+
+    /* ── Link volver al inicio ───────────────────────────────── */
+    .link-volver {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.80rem;
+      color: rgba(255,255,255,0.50);
+      text-decoration: none;
+      transition: color .2s;
+      margin-top: 2px;
+    }
+    .link-volver:hover { color: #fff; }
+  </style>
+</head>
+<body>
+
+  <!-- Fondo fotográfico -->
+  <div class="bg-foto"></div>
+
+  <!-- ══════════════ CARD DE LOGIN TRABAJADORES ══════════════ -->
+  <div class="card-login">
+
+    <!-- CUERPO -->
+    <div class="card-cuerpo">
+
+      <!-- LOGO -->
+      <div class="logo-bloque">
+        <p class="logo-pre">Financiera</p>
+        <h1 class="logo-nombre">confianza</h1>
+        <svg class="logo-ola" viewBox="0 0 115 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0 7 C19 0, 38 14, 57.5 7 C77 0, 96 14, 115 7"
+                stroke="rgba(255,255,255,0.50)" stroke-width="2.5"
+                stroke-linecap="round" fill="none"/>
+        </svg>
+        <p class="logo-fundacion">Fundación BBVA MicroFinanzas</p>
+        <p class="logo-ruc">RUC: 20228319768</p>
+      </div>
+
+      <!-- BADGE TRABAJADOR -->
+      <div style="text-align:center; margin-bottom: 8px;">
+        <span class="badge-trabajador">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/>
+          </svg>
+          Acceso para Trabajadores
+        </span>
+      </div>
+
+      <!-- SALUDO -->
+      <p class="saludo">¡Bienvenido!</p>
+      <p class="saludo-sub">Portal exclusivo para colaboradores internos</p>
+
+      <!-- ── FORMULARIO ────────────────────────── -->
+      <form class="form-login" method="POST" action="{% url 'authentication:login_trabajador' %}">
+        {% csrf_token %}
+
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alerta-error" style="background-color: rgba(30,142,62,0.18); color: #7eeaa0; border-color: rgba(30,142,62,0.40);">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        {% if form.non_field_errors %}
+          <div class="alerta-error">
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
+
+        <!-- Usuario -->
+        <div class="campo-grupo">
+          <label class="campo-label" for="id_username">Usuario</label>
+          <div class="campo">
+            <input
+              type="text"
+              name="username"
+              id="id_username"
+              placeholder="Ej. asesor1, gerencia1"
+              value="{{ form.username.value|default:'' }}"
+              maxlength="50"
+              autocomplete="username"
+            >
+            {% if form.username.errors %}
+              <p class="campo-error">{{ form.username.errors.0 }}</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Contraseña + botón enviar -->
+        <div class="campo-grupo">
+          <label class="campo-label" for="id_password">Contraseña</label>
+          <div class="campo fila-pass">
+            <div class="pass-wrap">
+              <input
+                type="password"
+                name="password"
+                id="id_password"
+                placeholder="••••••••"
+                autocomplete="current-password"
+              >
+              <button type="button" class="btn-ojo" id="btn-ojo" aria-label="Ver contraseña">
+                <svg id="ico-ojo" xmlns="http://www.w3.org/2000/svg" width="19" height="19"
+                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+                <svg id="ico-ojo-off" xmlns="http://www.w3.org/2000/svg" width="19" height="19"
+                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                     style="display:none">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8
+                           a18.45 18.45 0 0 1 5.06-5.94"/>
+                  <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8
+                           a18.5 18.5 0 0 1-2.16 3.19"/>
+                  <line x1="1" y1="1" x2="23" y2="23"/>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Botón flecha para enviar -->
+            <button type="submit" class="btn-enviar" aria-label="Iniciar sesión">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22"
+                   viewBox="0 0 24 24" fill="none" stroke="#0066CC"
+                   stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="13 6 19 12 13 18"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Aviso -->
+        <p class="aviso-restringido">
+          🔒 Acceso restringido — Solo roles: Asesor, Riesgos, Comité, Gerencia, Admin
+        </p>
+
+        <!-- Separador -->
+        <div class="separador">
+          <span class="separador-texto">¿Eres cliente?</span>
+        </div>
+
+        <!-- Botón Ir al login de clientes -->
+        <a href="{% url 'authentication:login' %}" class="btn-registro">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+               viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          Ingresar como Cliente
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15"
+               viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="13 6 19 12 13 18"/>
+          </svg>
+        </a>
+
+      </form>
+      <!-- ── FIN FORMULARIO ─────────────────── -->
+
+    </div>
+    <!-- /card-cuerpo -->
+
+    <!-- PIE DE CARD -->
+    <div class="card-pie">
+      <a href="{% url 'home' %}" class="pie-link link-volver">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15"
+             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"/>
+          <polyline points="12 19 5 12 12 5"/>
+        </svg>
+        Volver al inicio
+      </a>
+      <a href="#" class="pie-link">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15"
+             viewBox="0 0 24 24" fill="currentColor">
+          <path d="M6.62 10.79a15.053 15.053 0 0 0 6.59 6.59l2.2-2.2c.27-.27
+                   .67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1
+                   .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17
+                   0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2
+                   2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+        </svg>
+        Contáctanos
+      </a>
+    </div>
+
+  </div>
+  <!-- /card-login -->
+
+  <script>
+    const btnOjo   = document.getElementById('btn-ojo');
+    const passInp  = document.getElementById('id_password');
+    const icoOjo   = document.getElementById('ico-ojo');
+    const icoOjOff = document.getElementById('ico-ojo-off');
+
+    btnOjo.addEventListener('click', function () {
+      if (passInp.type === 'password') {
+        passInp.type           = 'text';
+        icoOjo.style.display   = 'none';
+        icoOjOff.style.display = '';
+      } else {
+        passInp.type           = 'password';
+        icoOjo.style.display   = '';
+        icoOjOff.style.display = 'none';
+      }
+    });
+  </script>
+
+</body>
+</html>

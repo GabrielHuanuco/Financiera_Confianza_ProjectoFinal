@@ -1,0 +1,52 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Detalle de Póliza{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/modules.css' %}">
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="module-welcome">
+    <h1>Detalle de Póliza <i class="bi bi-file-earmark-text" style="color: #6366f1;"></i></h1>
+    <p>Información detallada sobre tu seguro vehicular.</p>
+</div>
+
+<div class="premium-card">
+    <div class="premium-card-title">
+        <i class="bi bi-car-front-fill" style="color: #6366f1;"></i> Seguro Vehicular - Póliza #POL-987654321
+    </div>
+    
+    <div class="premium-list">
+        <div class="premium-list-item">
+            <span>Asegurado</span>
+            <span style="font-weight: 600;">{{ user.get_full_name|default:user.username }}</span>
+        </div>
+        <div class="premium-list-item">
+            <span>Vehículo</span>
+            <span style="font-weight: 600;">Toyota Yaris 2024 - Placa ABC-123</span>
+        </div>
+        <div class="premium-list-item">
+            <span>Estado</span>
+            <span class="positive" style="background: #dcfce7; padding: 4px 8px; border-radius: 4px;">VIGENTE</span>
+        </div>
+        <div class="premium-list-item">
+            <span>Fecha de Emisión</span>
+            <span style="font-weight: 600;">15 Ene 2025</span>
+        </div>
+        <div class="premium-list-item">
+            <span>Fecha de Vencimiento</span>
+            <span style="font-weight: 600;">15 Ene 2026</span>
+        </div>
+        <div class="premium-list-item">
+            <span>Cobertura Principal</span>
+            <span style="font-weight: 600;">Daños a terceros, robo total, accidentes personales</span>
+        </div>
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <a href="{% url 'seguros:index' %}" class="btn-premium btn-outline-premium" style="text-decoration: none; display: inline-block;">Volver a Mis Seguros</a>
+    </div>
+</div>
+{% endblock %}

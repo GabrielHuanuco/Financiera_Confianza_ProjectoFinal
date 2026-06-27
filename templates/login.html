@@ -1,0 +1,224 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Financiera Confianza — Iniciar sesión</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'css/login.css' %}">
+</head>
+<body>
+
+  <!-- Fondo fotográfico -->
+  <div class="bg-foto"></div>
+
+  <!-- ══════════════ CARD DE LOGIN ══════════════ -->
+  <div class="card-login">
+
+    <!-- CUERPO -->
+    <div class="card-cuerpo">
+
+      <!-- LOGO -->
+      <div class="logo-bloque">
+        <p class="logo-pre">Financiera</p>
+        <h1 class="logo-nombre">confianza</h1>
+        <svg class="logo-ola" viewBox="0 0 115 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0 7 C19 0, 38 14, 57.5 7 C77 0, 96 14, 115 7"
+                stroke="rgba(255,255,255,0.50)" stroke-width="2.5"
+                stroke-linecap="round" fill="none"/>
+        </svg>
+        <p class="logo-fundacion">Fundación BBVA MicroFinanzas</p>
+        <p class="logo-ruc">RUC: 20228319768</p>
+      </div>
+
+      <!-- SALUDO -->
+      <p class="saludo">¡Bienvenido!</p>
+      <p class="saludo-sub">Ingresa tus credenciales para continuar</p>
+
+      <!-- ── FORMULARIO ────────────────────────── -->
+      <form class="form-login" method="POST" action="{% url 'authentication:login' %}">
+        {% csrf_token %}
+
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alerta-error" style="background-color: rgba(30,142,62,0.18); color: #7eeaa0; border-color: rgba(30,142,62,0.40);">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        {% if form.non_field_errors %}
+          <div class="alerta-error">
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
+
+        <!-- Tipo de documento -->
+        <div class="campo-grupo">
+          <label class="campo-label" for="id_tipo_documento">Tipo de documento</label>
+          <div class="campo select-wrap">
+            <select name="tipo_documento" id="id_tipo_documento">
+              <option value="" disabled {% if not form.tipo_documento.value %}selected{% endif %}>
+                Seleccione una opción
+              </option>
+              <option value="DNI"  {% if form.tipo_documento.value == 'DNI' %}selected{% endif %}>DNI</option>
+              <option value="CE"   {% if form.tipo_documento.value == 'CE'  %}selected{% endif %}>Carnet de Extranjería</option>
+              <option value="RUC"  {% if form.tipo_documento.value == 'RUC' %}selected{% endif %}>RUC</option>
+            </select>
+            {% if form.tipo_documento.errors %}
+              <p class="campo-error">{{ form.tipo_documento.errors.0 }}</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Número de documento -->
+        <div class="campo-grupo">
+          <label class="campo-label" for="id_username">Número de documento</label>
+          <div class="campo">
+            <input
+              type="text"
+              name="username"
+              id="id_username"
+              placeholder="Ej. 12345678"
+              value="{{ form.username.value|default:'' }}"
+              maxlength="20"
+              autocomplete="username"
+            >
+            {% if form.username.errors %}
+              <p class="campo-error">{{ form.username.errors.0 }}</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Contraseña + botón enviar -->
+        <div class="campo-grupo">
+          <label class="campo-label" for="id_password">Contraseña</label>
+          <div class="campo fila-pass">
+            <div class="pass-wrap">
+              <input
+                type="password"
+                name="password"
+                id="id_password"
+                placeholder="••••••••"
+                autocomplete="current-password"
+              >
+              <button type="button" class="btn-ojo" id="btn-ojo" aria-label="Ver contraseña">
+                <svg id="ico-ojo" xmlns="http://www.w3.org/2000/svg" width="19" height="19"
+                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+                <svg id="ico-ojo-off" xmlns="http://www.w3.org/2000/svg" width="19" height="19"
+                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                     style="display:none">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8
+                           a18.45 18.45 0 0 1 5.06-5.94"/>
+                  <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8
+                           a18.5 18.5 0 0 1-2.16 3.19"/>
+                  <line x1="1" y1="1" x2="23" y2="23"/>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Botón flecha para enviar -->
+            <button type="submit" class="btn-enviar" aria-label="Iniciar sesión">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22"
+                   viewBox="0 0 24 24" fill="none" stroke="#0066CC"
+                   stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="13 6 19 12 13 18"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Separador -->
+        <div class="separador">
+          <span class="separador-texto">¿Eres nuevo?</span>
+        </div>
+
+        <!-- Botón Crear Cuenta -->
+        <a href="{% url 'authentication:register' %}" class="btn-registro">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+               viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <line x1="19" y1="8" x2="19" y2="14"/>
+            <line x1="22" y1="11" x2="16" y2="11"/>
+          </svg>
+          Crear cuenta
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15"
+               viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="13 6 19 12 13 18"/>
+          </svg>
+        </a>
+
+      </form>
+      <!-- ── FIN FORMULARIO ─────────────────── -->
+
+    </div>
+    <!-- /card-cuerpo -->
+
+    <!-- PIE DE CARD -->
+    <div class="card-pie">
+      <a href="#" class="pie-link">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15"
+             viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75
+                   7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38
+                   0-2.5-1.12-2.5-2.5S10.62 6.5 12
+                   6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/>
+        </svg>
+        Encuéntranos
+      </a>
+      <a href="#" class="pie-link">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15"
+             viewBox="0 0 24 24" fill="currentColor">
+          <path d="M6.62 10.79a15.053 15.053 0 0 0 6.59 6.59l2.2-2.2c.27-.27
+                   .67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1
+                   .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17
+                   0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2
+                   2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+        </svg>
+        Contáctanos
+      </a>
+    </div>
+
+  </div>
+  <!-- /card-login -->
+
+  <script>
+    const btnOjo   = document.getElementById('btn-ojo');
+    const passInp  = document.getElementById('id_password');
+    const icoOjo   = document.getElementById('ico-ojo');
+    const icoOjOff = document.getElementById('ico-ojo-off');
+
+    btnOjo.addEventListener('click', function () {
+      if (passInp.type === 'password') {
+        passInp.type           = 'text';
+        icoOjo.style.display   = 'none';
+        icoOjOff.style.display = '';
+      } else {
+        passInp.type           = 'password';
+        icoOjo.style.display   = '';
+        icoOjOff.style.display = 'none';
+      }
+    });
+
+    // Se ha eliminado la restricción de solo números para permitir
+    // el ingreso de los usuarios de prueba (ej. asesor1, gerencia1).
+  </script>
+
+</body>
+</html>

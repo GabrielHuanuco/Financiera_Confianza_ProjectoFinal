@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: financiera-confianza
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn config.wsgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.13
+      - key: DJANGO_DEBUG
+        value: "False"

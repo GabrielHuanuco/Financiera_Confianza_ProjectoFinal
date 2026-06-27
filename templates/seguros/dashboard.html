@@ -1,0 +1,62 @@
+{% extends 'base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Mis Seguros{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/modules.css' %}">
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="module-welcome">
+    <h1>Mis Seguros <i class="bi bi-shield-check" style="color: #6366f1;"></i></h1>
+    <p>Protege lo que más importa con nuestras pólizas de cobertura total.</p>
+</div>
+
+<div class="module-grid">
+    <!-- Seguro Vehicular -->
+    <div class="premium-card" style="border-top: 4px solid #6366f1;">
+        <div class="premium-card-title">
+            <i class="bi bi-car-front-fill" style="color: #6366f1;"></i> Seguro Vehicular
+        </div>
+        <p style="color: var(--text-muted); margin-bottom: 20px;">Toyota Yaris 2024 - Placa ABC-123</p>
+        
+        <div class="premium-list" style="margin-bottom: 20px;">
+            <div class="premium-list-item" style="padding: 10px;">
+                <span style="font-size: 0.9rem;">Estado</span>
+                <span class="item-right positive" style="background: #dcfce7; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">VIGENTE</span>
+            </div>
+            <div class="premium-list-item" style="padding: 10px;">
+                <span style="font-size: 0.9rem;">Próximo Pago</span>
+                <span style="font-weight: 600;">S/ 120.00 (20 Jun)</span>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <a href="{% url 'seguros:poliza' %}" class="btn-premium btn-primary-premium" style="background: linear-gradient(135deg, #6366f1, #4f46e5); padding: 10px; text-align: center; text-decoration: none;">Ver Póliza</a>
+            <a href="{% url 'seguros:siniestro' %}" class="btn-premium btn-outline-premium" style="border-color: #6366f1; color: #6366f1; padding: 10px; text-align: center; text-decoration: none;">Reportar Siniestro</a>
+        </div>
+    </div>
+
+    <!-- Seguro de Vida -->
+    <div class="premium-card" style="border-top: 4px solid #ec4899;">
+        <div class="premium-card-title">
+            <i class="bi bi-heart-pulse-fill" style="color: #ec4899;"></i> Seguro de Vida
+        </div>
+        <p style="color: var(--text-muted); margin-bottom: 20px;">Plan Protección Familiar Premium</p>
+        
+        <div class="premium-list" style="margin-bottom: 20px;">
+            <div class="premium-list-item" style="padding: 10px;">
+                <span style="font-size: 0.9rem;">Estado</span>
+                <span class="item-right positive" style="background: #dcfce7; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">VIGENTE</span>
+            </div>
+            <div class="premium-list-item" style="padding: 10px;">
+                <span style="font-size: 0.9rem;">Cobertura</span>
+                <span style="font-weight: 600;">S/ 250,000.00</span>
+            </div>
+        </div>
+
+        <a href="{% url 'seguros:beneficiarios' %}" class="btn-premium btn-primary-premium" style="background: linear-gradient(135deg, #ec4899, #db2777); text-align: center; text-decoration: none; display: block;">Gestionar Beneficiarios</a>
+    </div>
+</div>
+{% endblock %}

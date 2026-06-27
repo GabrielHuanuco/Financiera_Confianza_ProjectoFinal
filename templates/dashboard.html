@@ -1,0 +1,1254 @@
+{% extends 'base_dashboard.html' %}
+
+{% block title %}Mi Resumen{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Modal Styles — Dark Theme */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.7);
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(6px);
+    }
+
+    .modal-content {
+        background-color: #1e293b;
+        margin: auto;
+        padding: 30px;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 450px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        position: relative;
+        border: 1px solid #334155;
+        color: #f8fafc;
+    }
+
+    .close-modal {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        font-size: 24px;
+        font-weight: bold;
+        color: #64748b;
+        cursor: pointer;
+    }
+
+    .close-modal:hover {
+        color: #f8fafc;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #94a3b8;
+        font-size: 0.9rem;
+    }
+
+    .form-group input, .form-group select, .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1.5px solid #334155;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: all 0.2s;
+        background-color: #0f172a;
+        color: #f8fafc;
+    }
+
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        outline: none;
+    }
+
+    .form-group input::placeholder, .form-group textarea::placeholder {
+        color: #475569;
+    }
+
+    .secure-badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        color: #34d399;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+        background: rgba(16, 185, 129, 0.15);
+        padding: 8px;
+        border-radius: 6px;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .btn-action {
+        padding: 8px 16px;
+        border-radius: 6px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        color: white;
+        transition: all 0.2s ease;
+        font-size: 0.85rem;
+    }
+    
+    .btn-action:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    
+    .btn-primary { background: #3b82f6; }
+    .btn-success { background: #10b981; }
+    .btn-danger { background: #ef4444; }
+    
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .data-table th {
+        background: rgba(0, 0, 0, 0.25);
+        color: #94a3b8;
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #334155;
+    }
+    
+    .data-table td {
+        padding: 15px;
+        border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        color: #e2e8f0;
+    }
+
+    .data-table tbody tr {
+        transition: background-color 0.15s ease;
+    }
+
+    .data-table tbody tr:hover {
+        background-color: rgba(59, 130, 246, 0.05);
+    }
+    
+    .status-badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-bottom: 2px;
+    }
+    .status-pending { background: rgba(217, 119, 6, 0.2); color: #fbbf24; }
+    .status-success { background: rgba(22, 163, 74, 0.2); color: #4ade80; }
+    .status-danger { background: rgba(220, 38, 38, 0.2); color: #f87171; }
+    
+    .badge-verde { background: rgba(22, 163, 74, 0.2); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.3); }
+    .badge-amarillo { background: rgba(217, 119, 6, 0.2); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3); }
+    .badge-rojo { background: rgba(220, 38, 38, 0.2); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.3); }
+    
+    /* Textarea in tables (dark) */
+    textarea {
+        background-color: #0f172a !important;
+        color: #e2e8f0 !important;
+        border: 1px solid #334155 !important;
+        border-radius: 6px !important;
+    }
+
+    textarea::placeholder {
+        color: #475569 !important;
+    }
+
+    textarea:focus {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+        outline: none !important;
+    }
+
+    /* Select in tables (dark) */
+    select {
+        background-color: #0f172a !important;
+        color: #e2e8f0 !important;
+        border: 1px solid #334155 !important;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="welcome-section">
+    <h1>Hola de nuevo, {{ first_name }} 👋</h1>
+    <p>
+        {% if rol == 'CLIENTE' %}Aquí tienes el resumen de tus finanzas al día de hoy.
+        {% elif rol == 'ASESOR' %}Bienvenido al panel de asesoría comercial.
+        {% elif rol == 'RIESGOS' %}Bienvenido al panel de evaluación de riesgos.
+        {% elif rol == 'COMITE' %}Bienvenido al panel del comité de créditos.
+        {% elif rol == 'GERENCIA' %}Resumen gerencial e indicadores financieros.
+        {% elif rol == 'ADMIN' %}Panel de administración del sistema.
+        {% endif %}
+    </p>
+</div>
+
+{% if messages %}
+<div style="margin-bottom: 20px;">
+    {% for message in messages %}
+    <div style="padding: 15px; border-radius: 8px; margin-bottom: 10px; {% if message.tags == 'success' %}background-color: #dcfce7; color: #166534; border-left: 4px solid #16a34a;{% else %}background-color: #fee2e2; color: #991b1b; border-left: 4px solid #dc2626;{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if rol == 'CLIENTE' %}
+<!-- ─────────────────────────────────────────────────────────────
+     CLIENTE PANEL
+     ───────────────────────────────────────────────────────────── -->
+<div class="balance-card">
+    <div class="balance-label">Saldo Disponible Total</div>
+    <div class="balance-amount">{{ currency }} {{ total_balance }}</div>
+    <div class="balance-footer">
+        <span>N° Cuenta: {{ account_number }}</span>
+        <a href="{% url 'ahorros:index' %}" style="color: white; text-decoration: none;"><i class="bi bi-arrow-up-right-circle"></i> Ver detalles de cuenta</a>
+    </div>
+</div>
+
+<div class="quick-actions">
+    {% for action in quick_actions %}
+    <a href="{% url action.url %}" class="action-btn" style="text-decoration: none; color: inherit;">
+        <i class="bi {{ action.icon }}"></i>
+        <span>{{ action.label }}</span>
+    </a>
+    {% endfor %}
+</div>
+
+<div class="dashboard-grid">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Últimos Movimientos</h3>
+            <a href="{% url 'ahorros:index' %}" class="btn-link">Ver todos</a>
+        </div>
+        <div class="transaction-list">
+            {% if recent_transactions %}
+                {% for tx in recent_transactions %}
+                <div class="transaction-item">
+                    <div class="tx-info">
+                        <div class="tx-icon {{ tx.type }}">
+                            {% if tx.type == 'income' %}
+                            <i class="bi bi-arrow-down-left"></i>
+                            {% else %}
+                            <i class="bi bi-arrow-up-right"></i>
+                            {% endif %}
+                        </div>
+                        <div class="tx-details">
+                            <h4>{{ tx.description }}</h4>
+                            <p>{{ tx.date }}</p>
+                        </div>
+                    </div>
+                    <div class="tx-amount {{ tx.type }}">
+                        {{ tx.amount }}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="color: #64748b; padding: 20px 0;">No tienes movimientos recientes.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Tus Cuentas -->
+    <div class="card">
+        <div class="card-header" style="margin-bottom: 15px;">
+            <h3 class="card-title">Tus Cuentas</h3>
+            <button id="btnNuevaTarjeta" class="btn-link"
+                style="background: none; border: none; cursor: pointer; color: var(--primary-color); font-weight: 600; padding: 0;">
+                <i class="bi bi-plus-circle"></i> Nueva
+            </button>
+        </div>
+
+        {% for cuenta in cuentas %}
+        <div style="background: linear-gradient(135deg, #0f172a, #020617); color: white; border-radius: 10px; padding: 20px; margin-bottom: 15px; position: relative; overflow: hidden; border: 1px solid #334155;">
+            <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(255,255,255,0.05); border-radius: 50%;"></div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 15px; position: relative; z-index: 1;">
+                <i class="bi bi-credit-card-fill" style="font-size: 1.5rem; color: #cbd5e1;"></i>
+                <span style="font-weight: 600; letter-spacing: 1px;">{{ cuenta.tipo_cuenta }}</span>
+            </div>
+            <div style="font-size: 1rem; letter-spacing: 1px; margin-bottom: 10px; position: relative; z-index: 1; color: #94a3b8;">
+                N° {{ cuenta.numero_cuenta }}
+            </div>
+            <div style="font-size: 1.3rem; font-weight: 700; position: relative; z-index: 1;">
+                S/ {{ cuenta.saldo|floatformat:2 }}
+            </div>
+        </div>
+        {% empty %}
+        <div style="background: linear-gradient(135deg, #1e293b, #0f172a); color: white; border-radius: 10px; padding: 20px; margin-bottom: 15px; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(255,255,255,0.05); border-radius: 50%;"></div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 30px; position: relative; z-index: 1;">
+                <i class="bi bi-credit-card-fill" style="font-size: 1.5rem; color: #cbd5e1;"></i>
+                <span style="font-weight: 600; letter-spacing: 1px;">Sin cuenta</span>
+            </div>
+            <div style="font-size: 1rem; color: #94a3b8; position: relative; z-index: 1;">
+                Vincula una tarjeta para empezar
+            </div>
+        </div>
+        {% endfor %}
+
+        {% if creditos_activos %}
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="color: #64748b; font-size: 0.9rem;">Deuda Total Créditos</span>
+            <span style="font-weight: 700; color: #ef4444;">S/ {% for c in creditos_activos %}{% if forloop.first %}{{ c.saldo_pendiente|floatformat:2 }}{% endif %}{% endfor %}</span>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% elif rol == 'ASESOR' %}
+<!-- ─────────────────────────────────────────────────────────────
+     ASESOR PANEL
+     ───────────────────────────────────────────────────────────── -->
+<div class="grid-4">
+    <div class="card kpi-card kpi-primary">
+        <h4>Total Clientes</h4>
+        <h2>{{ total_clientes }}</h2>
+    </div>
+    <div class="card kpi-card kpi-warning">
+        <h4>Solicitudes Pendientes</h4>
+        <h2 style="color: #fbbf24;">{{ solicitudes_pendientes_count }}</h2>
+    </div>
+    <div class="card kpi-card kpi-info">
+        <h4>En Evaluación de Riesgos</h4>
+        <h2 style="color: #60a5fa;">{{ creditos_en_riesgos }}</h2>
+    </div>
+</div>
+
+{% if vista_asesor == 'clientes' %}
+<div class="card">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <h3 class="card-title" style="margin: 0;">Cartera de Clientes</h3>
+        <form method="GET" action="{% url 'dashboard:asesor_clientes' %}" style="display: flex; gap: 10px;">
+            <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Buscar cliente por DNI, Nombre o Apellido..." style="padding: 8px; border-radius: 6px; border: 1px solid #334155; background-color: #0f172a; color: #f8fafc; min-width: 300px;">
+            <button type="submit" class="btn-action btn-primary"><i class="bi bi-search"></i> Buscar</button>
+            {% if request.GET.q %}
+            <a href="{% url 'dashboard:asesor_clientes' %}" class="btn-action" style="background-color: #64748b; text-decoration: none;"><i class="bi bi-x-circle"></i> Limpiar</a>
+            {% endif %}
+        </form>
+    </div>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>DNI</th>
+                    <th>Teléfono</th>
+                    <th>Cuentas</th>
+                    <th>Saldo Total</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in clientes_data %}
+                <tr>
+                    <td><strong>{{ item.nombre_completo }}</strong><br><small style="color: #64748b;">{{ item.email }}</small></td>
+                    <td>{{ item.dni }}</td>
+                    <td>{{ item.telefono }}</td>
+                    <td>{{ item.cuentas_count }}</td>
+                    <td>S/ {{ item.saldo_total|floatformat:2 }}</td>
+                    <td><span class="status-badge {% if item.score > 600 %}status-success{% else %}status-pending{% endif %}">{{ item.score }}</span></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" style="text-align: center;">No hay clientes registrados.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Solicitudes Pendientes de Asignación</h3>
+    </div>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>Tipo</th>
+                    <th>Monto</th>
+                    <th>Cuotas</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sol in solicitudes_pendientes %}
+                <tr>
+                    <td>{{ sol.fecha_solicitud|date:"d M Y" }}</td>
+                    <td><strong>{{ sol.cliente.usuario.get_full_name }}</strong><br><small>{{ sol.cliente.dni }}</small></td>
+                    <td>{{ sol.tipo_credito }}</td>
+                    <td>S/ {{ sol.monto|floatformat:2 }}</td>
+                    <td>{{ sol.cuotas }}</td>
+                    <td>
+                        <form method="POST" action="{% url 'dashboard:asesor_derivar' sol.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-action btn-primary"><i class="bi bi-send-check"></i> Derivar a Riesgos</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" style="text-align: center; color: #64748b;">No hay solicitudes pendientes en este momento.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if not vista_asesor %}
+<div class="card" style="margin-top: 20px; border-left: 4px solid #10b981;">
+    <div class="card-header">
+        <h3 class="card-title">Créditos Aprobados (Listos para Desembolso)</h3>
+    </div>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Fecha Aprobación</th>
+                    <th>Cliente</th>
+                    <th>Tipo y Monto</th>
+                    <th>Historial</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sol in creditos_aprobados %}
+                <tr>
+                    <td>{{ sol.historial_aprobaciones.first.fecha|date:"d M Y"|default:sol.fecha_solicitud|date:"d M Y" }}</td>
+                    <td><strong>{{ sol.cliente.usuario.get_full_name }}</strong><br><small>{{ sol.cliente.dni }}</small></td>
+                    <td>
+                        <strong>{{ sol.tipo_credito }}</strong><br>
+                        S/ {{ sol.monto|floatformat:2 }}
+                    </td>
+                    <td>
+                        <button class="btn-action btn-primary" onclick="verHistorial({{ sol.id }})" style="background-color: #64748b; padding: 4px 8px; font-size: 0.8rem;">
+                            <i class="bi bi-clock-history"></i> Ver Trazabilidad
+                        </button>
+                    </td>
+                    <td>
+                        <form method="POST" action="{% url 'dashboard:asesor_desembolsar' sol.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-action btn-success"><i class="bi bi-cash"></i> Desembolsar</button>
+                        </form>
+                    </td>
+                    <div id="data-historial-{{ sol.id }}" style="display: none;">
+                        <ul style="list-style: none; padding: 0;">
+                        {% for h in sol.historial_aprobaciones.all %}
+                            <li style="margin-bottom: 15px; border-bottom: 1px solid #334155; padding-bottom: 10px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                    <strong><i class="bi bi-person-badge"></i> {{ h.rol }} ({{ h.usuario.first_name|default:h.usuario.username }})</strong>
+                                    <small style="color: #64748b;">{{ h.fecha|date:"d M Y H:i" }}</small>
+                                </div>
+                                <div style="font-size: 0.9rem; margin-bottom: 5px;">
+                                    <span style="color: #64748b;">De:</span> <span class="status-badge status-pending" style="font-weight: normal; padding: 2px 6px;">{{ h.estado_anterior }}</span>
+                                    <span style="color: #64748b; margin: 0 5px;"><i class="bi bi-arrow-right"></i> A:</span> <span class="status-badge status-success" style="font-weight: normal; padding: 2px 6px;">{{ h.estado_nuevo }}</span>
+                                </div>
+                                <p style="margin: 0; font-size: 0.9rem; color: #cbd5e1; background: rgba(15, 23, 42, 0.6); padding: 8px; border-radius: 4px; border-left: 3px solid #334155;">{{ h.observacion }}</p>
+                            </li>
+                        {% empty %}
+                            <p style="color: #64748b; font-size: 0.9rem;">No hay registros de historial (Crédito antiguo).</p>
+                        {% endfor %}
+                        </ul>
+                    </div>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" style="text-align: center; color: #64748b;">No hay créditos listos para desembolsar.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% elif rol == 'RIESGOS' %}
+<!-- ─────────────────────────────────────────────────────────────
+     RIESGOS PANEL
+     ───────────────────────────────────────────────────────────── -->
+<div class="grid-4" style="margin-bottom: 20px;">
+    <div class="card chart-container"><canvas id="chartRiesgosSemaforo"></canvas></div>
+    <div class="card chart-container"><canvas id="chartRiesgosEstados"></canvas></div>
+    <div class="card chart-container"><canvas id="chartRiesgosMora"></canvas></div>
+    <div class="card chart-container"><canvas id="chartRiesgosRDS"></canvas></div>
+</div>
+
+<div class="grid-4">
+    <div class="card kpi-card kpi-warning">
+        <h4>Evaluaciones Pendientes</h4>
+        <h2 style="color: #fbbf24;">{{ pendientes_count }}</h2>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <h3 class="card-title" style="margin: 0;">Cola de Evaluación de Riesgos</h3>
+        <form method="GET" action="{% url 'dashboard:index' %}" style="display: flex; gap: 10px;">
+            <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Buscar por DNI, Nombre o Apellido..." style="padding: 8px; border-radius: 6px; border: 1px solid #334155; background-color: #0f172a; color: #f8fafc; min-width: 250px;">
+            <button type="submit" class="btn-action btn-primary"><i class="bi bi-search"></i> Buscar</button>
+            {% if request.GET.q %}
+            <a href="{% url 'dashboard:index' %}" class="btn-action" style="background-color: #64748b; text-decoration: none;"><i class="bi bi-x-circle"></i> Limpiar</a>
+            {% endif %}
+        </form>
+    </div>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Cliente / DNI</th>
+                    <th>Score / Ingresos</th>
+                    <th>Crédito Solicitado</th>
+                    <th>Evaluar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sol in solicitudes_riesgos %}
+                <tr>
+                    <td>{{ sol.fecha_solicitud|date:"d M Y" }}</td>
+                    <td><strong>{{ sol.cliente.usuario.get_full_name }}</strong><br>{{ sol.cliente.dni }}</td>
+                    <td>
+                        <span class="status-badge badge-{{ sol.cliente.semaforo_crediticio|lower }}">
+                            Score: {{ sol.cliente.score_crediticio }}
+                        </span><br>
+                        <small>Ingresos: S/ {{ sol.cliente.ingresos|floatformat:2 }}</small><br>
+                        <span class="status-badge badge-{{ sol.semaforo_rds|lower }}" style="margin-top: 5px;">
+                            RDS: {{ sol.valor_rds|floatformat:1 }}%
+                        </span>
+                    </td>
+                    <td>
+                        <strong>{{ sol.tipo_credito }}</strong><br>
+                        Monto: S/ {{ sol.monto|floatformat:2 }}<br>
+                        Cuota: S/ {{ sol.cuota_mensual|floatformat:2 }}<br>
+                        <div style="margin-top: 5px;">
+                            <strong>Elegibilidad: </strong> 
+                            <span class="status-badge {% if sol.elegibilidad == 'APROBABLE' %}badge-verde{% elif sol.elegibilidad == 'OBSERVADO' %}badge-amarillo{% else %}badge-rojo{% endif %}">{{ sol.elegibilidad }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <form method="POST" action="{% url 'dashboard:riesgos_evaluar' sol.id %}" style="display: flex; gap: 10px; flex-direction: column;">
+                            {% csrf_token %}
+                            <textarea name="observaciones" placeholder="Observaciones de riesgo..." rows="2" style="width: 100%; border: 1px solid #ccc; border-radius: 4px; padding: 5px;"></textarea>
+                            <div style="display: flex; gap: 5px;">
+                                <button type="submit" name="accion" value="aprobar" class="btn-action btn-success"><i class="bi bi-check-lg"></i> Aprobar a Comité</button>
+                                <button type="submit" name="accion" value="rechazar" class="btn-action btn-danger"><i class="bi bi-x-lg"></i> Rechazar</button>
+                            </div>
+                        </form>
+                    </td>
+                    <div id="data-historial-{{ sol.id }}" style="display: none;">
+                        <ul style="list-style: none; padding: 0;">
+                        {% for h in sol.historial_aprobaciones.all %}
+                            <li style="margin-bottom: 15px; border-bottom: 1px solid #334155; padding-bottom: 10px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                    <strong><i class="bi bi-person-badge"></i> {{ h.rol }} ({{ h.usuario.first_name|default:h.usuario.username }})</strong>
+                                    <small style="color: #64748b;">{{ h.fecha|date:"d M Y H:i" }}</small>
+                                </div>
+                                <div style="font-size: 0.9rem; margin-bottom: 5px;">
+                                    <span style="color: #64748b;">De:</span> <span class="status-badge status-pending" style="font-weight: normal; padding: 2px 6px;">{{ h.estado_anterior }}</span>
+                                    <span style="color: #64748b; margin: 0 5px;"><i class="bi bi-arrow-right"></i> A:</span> <span class="status-badge status-success" style="font-weight: normal; padding: 2px 6px;">{{ h.estado_nuevo }}</span>
+                                </div>
+                                <p style="margin: 0; font-size: 0.9rem; color: #cbd5e1; background: rgba(15, 23, 42, 0.6); padding: 8px; border-radius: 4px; border-left: 3px solid #334155;">{{ h.observacion }}</p>
+                            </li>
+                        {% empty %}
+                            <p style="color: #64748b; font-size: 0.9rem;">No hay registros de historial.</p>
+                        {% endfor %}
+                        </ul>
+                    </div>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" style="text-align: center; color: #64748b;">No hay clientes en evaluación de riesgo actualmente.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% elif rol == 'COMITE' %}
+<!-- ─────────────────────────────────────────────────────────────
+     COMITE PANEL
+     ───────────────────────────────────────────────────────────── -->
+<div class="grid-4">
+    <div class="card kpi-card kpi-info">
+        <h4>Créditos por Aprobar</h4>
+        <h2 style="color: #60a5fa;">{{ pendientes_count }}</h2>
+    </div>
+    <div class="card kpi-card kpi-success">
+        <h4>Tiempo Promedio</h4>
+        <h2 style="color: #34d399;">{{ tiempo_promedio }} días</h2>
+    </div>
+    <div class="card kpi-card kpi-primary">
+        <h4>Aprobados</h4>
+        <h2 style="color: #60a5fa;">{{ aprobados_count }}</h2>
+    </div>
+    <div class="card kpi-card kpi-danger">
+        <h4>Rechazados</h4>
+        <h2 style="color: #f87171;">{{ rechazados_count }}</h2>
+    </div>
+</div>
+
+<div class="grid-2" style="margin-bottom: 20px;">
+    <div class="card chart-container"><canvas id="chartComiteResoluciones"></canvas></div>
+    <div class="card chart-container"><canvas id="chartComiteTipos"></canvas></div>
+</div>
+
+<div class="card">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <h3 class="card-title" style="margin: 0;">Expedientes listos para Comité</h3>
+        <form method="GET" action="{% url 'dashboard:index' %}" style="display: flex; gap: 10px;">
+            <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Buscar por DNI, Nombre o Apellido..." style="padding: 8px; border-radius: 6px; border: 1px solid #334155; background-color: #0f172a; color: #f8fafc; min-width: 250px;">
+            <button type="submit" class="btn-action btn-primary"><i class="bi bi-search"></i> Buscar</button>
+            {% if request.GET.q %}
+            <a href="{% url 'dashboard:index' %}" class="btn-action" style="background-color: #64748b; text-decoration: none;"><i class="bi bi-x-circle"></i> Limpiar</a>
+            {% endif %}
+        </form>
+    </div>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Cliente / DNI</th>
+                    <th>Score / Ingresos</th>
+                    <th>Detalle del Crédito</th>
+                    <th>Notas de Riesgos</th>
+                    <th>Resolución</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sol in creditos_comite %}
+                <tr>
+                    <td>{{ sol.fecha_solicitud|date:"d M Y" }}</td>
+                    <td><strong>{{ sol.cliente.usuario.get_full_name }}</strong><br>{{ sol.cliente.dni }}</td>
+                    <td>
+                        <span class="status-badge badge-{{ sol.cliente.semaforo_crediticio|lower }}">
+                            Score: {{ sol.cliente.score_crediticio }}
+                        </span><br>
+                        <small>Ingresos: S/ {{ sol.cliente.ingresos|floatformat:2 }}</small><br>
+                        <span class="status-badge badge-{{ sol.semaforo_rds|lower }}" style="margin-top: 5px;">
+                            RDS: {{ sol.valor_rds|floatformat:1 }}%
+                        </span>
+                    </td>
+                    <td>
+                        <strong>{{ sol.tipo_credito }}</strong><br>
+                        Monto: S/ {{ sol.monto|floatformat:2 }}<br>
+                        Cuota: S/ {{ sol.cuota_mensual|floatformat:2 }}<br>
+                        <div style="margin-top: 5px;">
+                            <strong>Elegibilidad: </strong> 
+                            <span class="status-badge {% if sol.elegibilidad == 'APROBABLE' %}badge-verde{% elif sol.elegibilidad == 'OBSERVADO' %}badge-amarillo{% else %}badge-rojo{% endif %}">{{ sol.elegibilidad }}</span>
+                        </div>
+                    </td>
+                    <td><small style="color: #94a3b8; display: block; max-width: 200px;">{{ sol.observaciones }}</small></td>
+                    <td>
+                        <form method="POST" action="{% url 'dashboard:comite_resolver' sol.id %}" style="display: flex; gap: 10px; flex-direction: column;">
+                            {% csrf_token %}
+                            <textarea name="observaciones" placeholder="Resolución del comité..." rows="2" style="width: 100%; border: 1px solid #ccc; border-radius: 4px; padding: 5px;"></textarea>
+                            <div style="display: flex; gap: 5px;">
+                                <button type="submit" name="accion" value="aprobar" class="btn-action btn-success"><i class="bi bi-check-lg"></i> Aprobar</button>
+                                <button type="submit" name="accion" value="rechazar" class="btn-action btn-danger"><i class="bi bi-x-lg"></i> Rechazar</button>
+                            </div>
+                        </form>
+                    </td>
+                    <div id="data-historial-{{ sol.id }}" style="display: none;">
+                        <ul style="list-style: none; padding: 0;">
+                        {% for h in sol.historial_aprobaciones.all %}
+                            <li style="margin-bottom: 15px; border-bottom: 1px solid #334155; padding-bottom: 10px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                    <strong><i class="bi bi-person-badge"></i> {{ h.rol }} ({{ h.usuario.first_name|default:h.usuario.username }})</strong>
+                                    <small style="color: #64748b;">{{ h.fecha|date:"d M Y H:i" }}</small>
+                                </div>
+                                <div style="font-size: 0.9rem; margin-bottom: 5px;">
+                                    <span style="color: #64748b;">De:</span> <span class="status-badge status-pending" style="font-weight: normal; padding: 2px 6px;">{{ h.estado_anterior }}</span>
+                                    <span style="color: #64748b; margin: 0 5px;"><i class="bi bi-arrow-right"></i> A:</span> <span class="status-badge status-success" style="font-weight: normal; padding: 2px 6px;">{{ h.estado_nuevo }}</span>
+                                </div>
+                                <p style="margin: 0; font-size: 0.9rem; color: #cbd5e1; background: rgba(15, 23, 42, 0.6); padding: 8px; border-radius: 4px; border-left: 3px solid #334155;">{{ h.observacion }}</p>
+                            </li>
+                        {% empty %}
+                            <p style="color: #64748b; font-size: 0.9rem;">No hay registros de historial.</p>
+                        {% endfor %}
+                        </ul>
+                    </div>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" style="text-align: center; color: #64748b;">No hay expedientes listos para comité.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% elif rol == 'GERENCIA' %}
+<!-- ─────────────────────────────────────────────────────────────
+     GERENCIA PANEL
+     ───────────────────────────────────────────────────────────── -->
+<div class="grid-4">
+    <div class="card kpi-card kpi-primary">
+        <h4>Cartera Total Desembolsada</h4>
+        <h2 style="color: #60a5fa;">S/ {{ monto_desembolsado }}</h2>
+    </div>
+    <div class="card kpi-card kpi-info">
+        <h4>Saldo por Cobrar</h4>
+        <h2 style="color: #38bdf8;">S/ {{ cartera_total }}</h2>
+    </div>
+    <div class="card kpi-card kpi-success">
+        <h4>Total Clientes Activos</h4>
+        <h2 style="color: #34d399;">{{ total_clientes }}</h2>
+    </div>
+    <div class="card kpi-card kpi-warning">
+        <h4>Cuentas de Ahorro</h4>
+        <h2 style="color: #fbbf24;">{{ total_cuentas }}</h2>
+    </div>
+</div>
+
+<div class="grid-2" style="margin-bottom: 20px;">
+    <div class="card chart-container"><canvas id="chartGerenciaFlujo"></canvas></div>
+    <div class="card chart-container"><canvas id="chartGerenciaColocaciones"></canvas></div>
+</div>
+<div class="grid-3" style="margin-bottom: 20px;">
+    <div class="card chart-container"><canvas id="chartGerenciaCartera"></canvas></div>
+    <div class="card chart-container"><canvas id="chartGerenciaMora"></canvas></div>
+    <div class="card chart-container"><canvas id="chartGerenciaAprobRech"></canvas></div>
+</div>
+
+<div class="card">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <h3 class="card-title" style="margin: 0;">Cola de Evaluación de Alta Gerencia (> S/ 50,000)</h3>
+        <form method="GET" action="{% url 'dashboard:index' %}" style="display: flex; gap: 10px;">
+            <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Buscar por DNI, Nombre o Apellido..." style="padding: 8px; border-radius: 6px; border: 1px solid #334155; background-color: #0f172a; color: #f8fafc; min-width: 250px;">
+            <button type="submit" class="btn-action btn-primary"><i class="bi bi-search"></i> Buscar</button>
+            {% if request.GET.q %}
+            <a href="{% url 'dashboard:index' %}" class="btn-action" style="background-color: #64748b; text-decoration: none;"><i class="bi bi-x-circle"></i> Limpiar</a>
+            {% endif %}
+        </form>
+    </div>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Cliente / DNI</th>
+                    <th>Score / Ingresos</th>
+                    <th>Detalle del Crédito</th>
+                    <th>Historial de Aprobaciones</th>
+                    <th>Resolución Final</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sol in creditos_gerencia %}
+                <tr>
+                    <td>{{ sol.fecha_solicitud|date:"d M Y" }}</td>
+                    <td><strong>{{ sol.cliente.usuario.get_full_name }}</strong><br>{{ sol.cliente.dni }}</td>
+                    <td>
+                        <span class="status-badge badge-{{ sol.cliente.semaforo_crediticio|lower }}">
+                            Score: {{ sol.cliente.score_crediticio }}
+                        </span><br>
+                        <small>Ingresos: S/ {{ sol.cliente.ingresos|floatformat:2 }}</small><br>
+                        <span class="status-badge badge-{{ sol.semaforo_rds|lower }}" style="margin-top: 5px;">
+                            RDS: {{ sol.valor_rds|floatformat:1 }}%
+                        </span>
+                    </td>
+                    <td>
+                        <strong>{{ sol.tipo_credito }}</strong><br>
+                        Monto: S/ {{ sol.monto|floatformat:2 }}<br>
+                        Cuota: S/ {{ sol.cuota_mensual|floatformat:2 }}
+                    </td>
+                    <td>
+                        <button class="btn-action btn-primary" onclick="verHistorial({{ sol.id }})" style="background-color: #64748b; padding: 4px 8px; font-size: 0.8rem; margin-bottom: 5px;">
+                            <i class="bi bi-clock-history"></i> Ver Trazabilidad
+                        </button>
+                    </td>
+                    <td>
+                        <form method="POST" action="{% url 'dashboard:gerencia_resolver' sol.id %}" style="display: flex; gap: 10px; flex-direction: column;">
+                            {% csrf_token %}
+                            <textarea name="observaciones" placeholder="Resolución de gerencia..." rows="2" style="width: 100%; border: 1px solid #ccc; border-radius: 4px; padding: 5px;"></textarea>
+                            <div style="display: flex; gap: 5px;">
+                                <button type="submit" name="accion" value="aprobar" class="btn-action btn-success"><i class="bi bi-check-lg"></i> Aprobar</button>
+                                <button type="submit" name="accion" value="rechazar" class="btn-action btn-danger"><i class="bi bi-x-lg"></i> Rechazar</button>
+                            </div>
+                        </form>
+                    </td>
+                    <div id="data-historial-{{ sol.id }}" style="display: none;">
+                        <ul style="list-style: none; padding: 0;">
+                        {% for h in sol.historial_aprobaciones.all %}
+                            <li style="margin-bottom: 15px; border-bottom: 1px solid #334155; padding-bottom: 10px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                    <strong><i class="bi bi-person-badge"></i> {{ h.rol }} ({{ h.usuario.first_name|default:h.usuario.username }})</strong>
+                                    <small style="color: #64748b;">{{ h.fecha|date:"d M Y H:i" }}</small>
+                                </div>
+                                <div style="font-size: 0.9rem; margin-bottom: 5px;">
+                                    <span style="color: #64748b;">De:</span> <span class="status-badge status-pending" style="font-weight: normal; padding: 2px 6px;">{{ h.estado_anterior }}</span>
+                                    <span style="color: #64748b; margin: 0 5px;"><i class="bi bi-arrow-right"></i> A:</span> <span class="status-badge status-success" style="font-weight: normal; padding: 2px 6px;">{{ h.estado_nuevo }}</span>
+                                </div>
+                                <p style="margin: 0; font-size: 0.9rem; color: #cbd5e1; background: rgba(15, 23, 42, 0.6); padding: 8px; border-radius: 4px; border-left: 3px solid #334155;">{{ h.observacion }}</p>
+                            </li>
+                        {% empty %}
+                            <p style="color: #64748b; font-size: 0.9rem;">No hay registros de historial.</p>
+                        {% endfor %}
+                        </ul>
+                    </div>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" style="text-align: center; color: #64748b;">No hay expedientes pendientes de Alta Gerencia.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="grid-2">
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">Estado de Créditos</h3></div>
+        <div class="table-container">
+            <table class="data-table">
+                <tr><td>Créditos Aprobados / Desembolsados</td><td><strong>{{ creditos_aprobados }}</strong></td></tr>
+                <tr><td>Créditos en Proceso (Evaluación)</td><td><strong>{{ creditos_en_proceso }}</strong></td></tr>
+                <tr><td>Créditos Rechazados</td><td><strong style="color: #f87171;">{{ creditos_rechazados }}</strong></td></tr>
+                <tr style="background-color: rgba(59, 130, 246, 0.1);"><td><strong>Total Solicitudes Históricas</strong></td><td><strong>{{ total_creditos }}</strong></td></tr>
+            </table>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header"><h3 class="card-title">Transacciones Bancarias</h3></div>
+        <div class="table-container">
+            <table class="data-table">
+                <tr><td>Transferencias Enviadas</td><td><strong>{{ total_transferencias }}</strong></td></tr>
+                <tr><td>Movimientos Totales Registrados</td><td><strong>{{ total_movimientos }}</strong></td></tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% elif rol == 'ADMIN' %}
+<!-- ─────────────────────────────────────────────────────────────
+     ADMIN PANEL
+     ───────────────────────────────────────────────────────────── -->
+<div class="grid-4">
+    <div class="card kpi-card kpi-primary">
+        <h4>Total Usuarios</h4>
+        <h2>{{ total_usuarios }}</h2>
+    </div>
+    {% for rol_key, count in roles_count.items %}
+        {% if rol_key != 'CLIENTE' %}
+        <div class="card kpi-card kpi-info">
+            <h4>Personal: {{ rol_key }}</h4>
+            <h2 style="color: #60a5fa;">{{ count }}</h2>
+        </div>
+        {% endif %}
+    {% endfor %}
+</div>
+
+<div class="grid-2" style="margin-bottom: 20px;">
+    <div class="card chart-container"><canvas id="chartAdminMora"></canvas></div>
+    <div class="card chart-container"><canvas id="chartAdminOps"></canvas></div>
+</div>
+<div class="grid-2" style="margin-bottom: 20px;">
+    <div class="card chart-container"><canvas id="chartAdminActividad"></canvas></div>
+    <div class="card chart-container"><canvas id="chartAdminGeneral"></canvas></div>
+</div>
+
+<div class="card">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <h3 class="card-title" style="margin: 0;">Gestión de Usuarios y Roles</h3>
+        <form method="GET" action="{% url 'dashboard:admin_usuarios' %}" style="display: flex; gap: 10px;">
+            <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Buscar usuario por DNI, Nombre o Apellido..." style="padding: 8px; border-radius: 6px; border: 1px solid #334155; background-color: #0f172a; color: #f8fafc; min-width: 300px;">
+            <button type="submit" class="btn-action btn-primary"><i class="bi bi-search"></i> Buscar</button>
+            {% if request.GET.q %}
+            <a href="{% url 'dashboard:admin_usuarios' %}" class="btn-action" style="background-color: #64748b; text-decoration: none;"><i class="bi bi-x-circle"></i> Limpiar</a>
+            {% endif %}
+        </form>
+    </div>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Usuario</th>
+                    <th>Nombre y Apellido</th>
+                    <th>DNI</th>
+                    <th>Rol Actual</th>
+                    <th>Cambiar Rol</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cli in usuarios_list %}
+                <tr>
+                    <td>{{ cli.usuario.username }}</td>
+                    <td>{{ cli.usuario.get_full_name }}</td>
+                    <td>{{ cli.dni }}</td>
+                    <td><span class="status-badge {% if cli.rol == 'ADMIN' %}status-danger{% elif cli.rol != 'CLIENTE' %}status-success{% else %}status-pending{% endif %}">{{ cli.rol }}</span></td>
+                    <td>
+                        <form method="POST" action="{% url 'dashboard:admin_cambiar_rol' cli.id %}" style="display: flex; gap: 5px;">
+                            {% csrf_token %}
+                            <select name="nuevo_rol" style="padding: 5px; border-radius: 4px; border: 1px solid #cbd5e1;">
+                                {% for r_val, r_name in roles_choices %}
+                                    <option value="{{ r_val }}" {% if cli.rol == r_val %}selected{% endif %}>{{ r_name }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn-action btn-primary" style="padding: 5px 10px;"><i class="bi bi-arrow-repeat"></i> Actualizar</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Modal Agregar Tarjeta -->
+<div id="modalTarjeta" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" id="closeModalTarjeta">&times;</span>
+        <h3 style="margin-top: 0; margin-bottom: 5px; color: #0f172a; font-size: 1.4rem;">Vincular Nueva Tarjeta</h3>
+        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 15px;">Ingresa los datos de tu tarjeta de forma
+            segura.</p>
+
+        <div class="secure-badge">
+            <i class="bi bi-shield-lock-fill"></i> Conexión Encriptada 256-bit
+        </div>
+
+        <form method="POST" action="{% url 'dashboard:agregar_tarjeta' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="nombre_tarjeta">Nombre en la tarjeta</label>
+                <input type="text" name="nombre_tarjeta" id="nombre_tarjeta" required placeholder="EJ. JUAN PEREZ">
+            </div>
+
+            <div class="form-group">
+                <label for="numero_tarjeta">Número de tarjeta</label>
+                <input type="text" name="numero_tarjeta" id="numero_tarjeta" required placeholder="0000 0000 0000 0000"
+                    maxlength="19" pattern="\d{4} \d{4} \d{4} \d{4}|\d{16}"
+                    title="Ingrese los 16 dígitos de su tarjeta">
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="vencimiento">Vencimiento</label>
+                    <input type="text" name="vencimiento" id="vencimiento" required placeholder="MM/AA" maxlength="5"
+                        pattern="(0[1-9]|1[0-2])\/[0-9]{2}">
+                </div>
+                <div class="form-group">
+                    <label for="cvv">CVV</label>
+                    <input type="password" name="cvv" id="cvv" required placeholder="***" maxlength="4"
+                        pattern="\d{3,4}">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 10px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+                <label for="pin">Contraseña de Banca por Internet</label>
+                <input type="password" name="pin" id="pin" required placeholder="Para confirmar tu identidad">
+            </div>
+
+            <button type="submit"
+                style="width: 100%; padding: 14px; background: linear-gradient(135deg, #0ea5e9, #0284c7); color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="bi bi-plus-circle-fill"></i> Vincular Tarjeta
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Historial de Trazabilidad -->
+<div id="modalHistorial" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <span class="close-modal" id="closeModalHistorial">&times;</span>
+        <h3 style="margin-top: 0; margin-bottom: 15px; color: #0f172a; font-size: 1.4rem;">Historial de Aprobaciones</h3>
+        
+        <div id="historialContainer" style="max-height: 400px; overflow-y: auto;">
+            <!-- Contenido dinámico -->
+        </div>
+    </div>
+</div>
+
+<script>
+    const modalTarjeta = document.getElementById("modalTarjeta");
+    const btnNuevaTarjeta = document.getElementById("btnNuevaTarjeta");
+    const closeModalTarjeta = document.getElementById("closeModalTarjeta");
+
+    const modalHistorial = document.getElementById("modalHistorial");
+    const closeModalHistorial = document.getElementById("closeModalHistorial");
+
+    if(btnNuevaTarjeta) {
+        btnNuevaTarjeta.addEventListener("click", function (e) {
+            e.preventDefault();
+            modalTarjeta.style.display = "flex";
+        });
+    }
+
+    if(closeModalTarjeta) {
+        closeModalTarjeta.onclick = function () {
+            modalTarjeta.style.display = "none";
+        }
+    }
+    
+    if(closeModalHistorial) {
+        closeModalHistorial.onclick = function () {
+            modalHistorial.style.display = "none";
+        }
+    }
+
+    window.onclick = function (event) {
+        if (event.target == modalTarjeta) {
+            modalTarjeta.style.display = "none";
+        }
+        if (event.target == modalHistorial) {
+            modalHistorial.style.display = "none";
+        }
+    }
+
+    function verHistorial(creditoId) {
+        const sourceData = document.getElementById('data-historial-' + creditoId);
+        const container = document.getElementById('historialContainer');
+        if (sourceData) {
+            container.innerHTML = sourceData.innerHTML;
+            modalHistorial.style.display = "flex";
+        } else {
+            container.innerHTML = "<p>No hay historial disponible para este crédito.</p>";
+            modalHistorial.style.display = "flex";
+        }
+    }
+
+    // Simple format for card number
+    const numTarjetaInput = document.getElementById('numero_tarjeta');
+    if(numTarjetaInput) {
+        numTarjetaInput.addEventListener('input', function (e) {
+            var target = e.target;
+            var position = target.selectionEnd;
+            var length = target.value.length;
+            target.value = target.value.replace(/[^\d]/g, '').replace(/(.{4})/g, '$1 ').trim();
+            target.selectionEnd = position += ((target.value.charAt(position - 1) === ' ' && target.value.charAt(length - 1) === ' ' && length !== target.value.length) ? 1 : 0);
+        });
+    }
+
+    // Format for MM/YY
+    const vencimientoInput = document.getElementById('vencimiento');
+    if(vencimientoInput) {
+        vencimientoInput.addEventListener('input', function (e) {
+            var target = e.target;
+            target.value = target.value.replace(/[^\d]/g, '').replace(/(.{2})/, '$1/').trim();
+            if (target.value.length > 5) target.value = target.value.substring(0, 5);
+        });
+    }
+
+    // Chart.js Configuration
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+
+    const defaultChartColors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#64748b'];
+    
+    function createChart(ctxId, type, label, labels, data, colors=null, extraOptions={}) {
+        const ctx = document.getElementById(ctxId);
+        if (!ctx) return;
+        
+        const isBar = type === 'bar';
+        const isDoughnut = type === 'doughnut' || type === 'pie';
+        const isLine = type === 'line';
+        
+        const chartColors = colors || defaultChartColors;
+
+        let datasets = [{
+            label: label,
+            data: data,
+            backgroundColor: isLine ? chartColors : chartColors,
+            borderColor: isLine ? chartColors : 'transparent',
+            borderWidth: isLine ? 3 : 0,
+            borderRadius: isBar ? 6 : 0,
+            pointBackgroundColor: isLine ? chartColors : undefined,
+            pointBorderColor: '#1e293b',
+            pointBorderWidth: isLine ? 2 : 0,
+            pointRadius: isLine ? 4 : 0,
+            pointHoverRadius: isLine ? 6 : 0,
+            tension: 0.4,
+            fill: isLine ? {
+                target: 'origin',
+                above: typeof chartColors === 'string' ? chartColors.replace(')', ', 0.1)').replace('rgb', 'rgba') : 'rgba(59, 130, 246, 0.1)'
+            } : false
+        }];
+
+        const options = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { 
+                    position: 'bottom',
+                    labels: {
+                        color: '#94a3b8',
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                },
+                title: { 
+                    display: true, 
+                    text: label, 
+                    color: '#f8fafc',
+                    font: { size: 14, weight: '600' },
+                    align: 'start',
+                    padding: { bottom: 20 }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                    titleColor: '#f8fafc',
+                    bodyColor: '#cbd5e1',
+                    padding: 12,
+                    cornerRadius: 8,
+                    displayColors: true,
+                    boxPadding: 4,
+                    borderColor: '#334155',
+                    borderWidth: 1
+                }
+            },
+            scales: isDoughnut ? undefined : {
+                x: {
+                    grid: {
+                        display: false,
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: '#64748b',
+                        font: { size: 11 }
+                    }
+                },
+                y: {
+                    grid: {
+                        color: 'rgba(148, 163, 184, 0.1)',
+                        drawBorder: false,
+                        borderDash: [5, 5]
+                    },
+                    ticks: {
+                        color: '#64748b',
+                        font: { size: 11 },
+                        padding: 10
+                    },
+                    border: { display: false }
+                }
+            },
+            cutout: isDoughnut ? '75%' : undefined,
+            ...extraOptions
+        };
+
+        new Chart(ctx, {
+            type: type,
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: options
+        });
+    }
+
+    // ── LIVE TABLE FILTER ──
+    const searchInputs = document.querySelectorAll('input[name="q"]');
+    searchInputs.forEach(input => {
+        // Prevent form submission
+        const form = input.closest('form');
+        if (form) {
+            form.addEventListener('submit', e => e.preventDefault());
+        }
+        
+        // Live filter
+        input.addEventListener('input', function(e) {
+            const term = e.target.value.toLowerCase().trim();
+            const terms = term.split(/\s+/);
+            
+            // Find the closest table container
+            const container = input.closest('.card').querySelector('.data-table tbody');
+            if (!container) return;
+            
+            const rows = container.querySelectorAll('tr');
+            rows.forEach(row => {
+                // If the row has colspan (like "No hay expedientes"), ignore it
+                if (row.querySelector('td[colspan]')) return;
+                
+                const text = row.textContent.toLowerCase();
+                const matches = terms.every(t => text.includes(t));
+                row.style.display = matches ? '' : 'none';
+            });
+        });
+    });
+
+    {% if rol == 'RIESGOS' %}
+        const rSemaforo = JSON.parse('{{ chart_semaforo|escapejs }}');
+        createChart('chartRiesgosSemaforo', 'doughnut', 'Semáforo Crediticio', Object.keys(rSemaforo), Object.values(rSemaforo), ['#10b981', '#f59e0b', '#ef4444']);
+        
+        const rEstados = JSON.parse('{{ chart_estados|escapejs }}');
+        const estadosMap = {}; rEstados.forEach(e => estadosMap[e.estado] = e.c);
+        createChart('chartRiesgosEstados', 'bar', 'Solicitudes por Estado', Object.keys(estadosMap), Object.values(estadosMap));
+
+        const rMora = JSON.parse('{{ chart_mora|escapejs }}');
+        createChart('chartRiesgosMora', 'pie', 'Mora por Bandas', Object.keys(rMora), Object.values(rMora));
+
+        const rRds = JSON.parse('{{ chart_rds|escapejs }}');
+        createChart('chartRiesgosRDS', 'bar', 'Distribución RDS', Object.keys(rRds), Object.values(rRds), ['#10b981', '#f59e0b', '#ef4444']);
+    {% elif rol == 'COMITE' %}
+        const cResoluciones = JSON.parse('{{ chart_resoluciones|escapejs }}');
+        createChart('chartComiteResoluciones', 'doughnut', 'Aprobados vs Rechazados', Object.keys(cResoluciones), Object.values(cResoluciones), ['#10b981', '#ef4444']);
+
+        const cTipos = JSON.parse('{{ chart_tipos|escapejs }}');
+        const tiposMap = {}; cTipos.forEach(t => tiposMap[t.tipo_credito] = t.c);
+        createChart('chartComiteTipos', 'bar', 'Créditos por Tipo', Object.keys(tiposMap), Object.values(tiposMap));
+    {% elif rol == 'GERENCIA' %}
+        const gFlujo = JSON.parse('{{ flujo_aprob|escapejs }}');
+        createChart('chartGerenciaFlujo', 'bar', 'Flujo de Aprobaciones', Object.keys(gFlujo), Object.values(gFlujo));
+
+        const gColocaciones = JSON.parse('{{ chart_colocaciones|escapejs }}');
+        const colLabels = gColocaciones.map(c => c.month);
+        const colData = gColocaciones.map(c => c.total);
+        createChart('chartGerenciaColocaciones', 'line', 'Colocaciones por Mes (S/)', colLabels, colData, '#3b82f6', { scales: { y: { beginAtZero: true } } });
+
+        const gCartera = JSON.parse('{{ chart_cartera|escapejs }}');
+        createChart('chartGerenciaCartera', 'doughnut', 'Cartera por Tipo', Object.keys(gCartera), Object.values(gCartera));
+
+        const gMora = JSON.parse('{{ chart_mora|escapejs }}');
+        createChart('chartGerenciaMora', 'pie', 'Mora por Bandas', Object.keys(gMora), Object.values(gMora));
+
+        const gAprobRech = JSON.parse('{{ chart_aprob_rech|escapejs }}');
+        createChart('chartGerenciaAprobRech', 'bar', 'Aprobados vs Rechazados', Object.keys(gAprobRech), Object.values(gAprobRech), ['#10b981', '#ef4444']);
+    {% elif rol == 'ADMIN' %}
+        const aMora = {
+            'AG. ORIENTE 2': 11.8,
+            'AG. SUR 3': 10.2,
+            'AG. NORTE 6': 8.7,
+            'OF. PRINCIPAL': 6.2,
+            'AG. LIMA 1': 3.8
+        };
+        createChart('chartAdminMora', 'bar', 'MORA POR OFICINA', Object.keys(aMora), Object.values(aMora), 
+            ['#ef4444', '#ef4444', '#f59e0b', '#f59e0b', '#65a30d'], 
+            { indexAxis: 'y', plugins: { legend: { display: false } } }
+        );
+
+        const aOps = JSON.parse('{{ chart_ops|escapejs }}');
+        createChart('chartAdminOps', 'pie', 'Operaciones por Módulo', Object.keys(aOps), Object.values(aOps));
+
+        const aAct = JSON.parse('{{ chart_actividad|escapejs }}');
+        const actLabels = aAct.map(a => a.month);
+        const actData = aAct.map(a => a.total);
+        createChart('chartAdminActividad', 'line', 'Actividad Transaccional (S/)', actLabels, actData, '#8b5cf6');
+
+        const aGen = JSON.parse('{{ chart_general|escapejs }}');
+        createChart('chartAdminGeneral', 'bar', 'Volumen General de Módulos', Object.keys(aGen), Object.values(aGen));
+    {% endif %}
+</script>
+{% endblock %}

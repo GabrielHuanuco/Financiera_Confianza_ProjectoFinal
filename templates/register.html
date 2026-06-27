@@ -1,0 +1,202 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Financiera Confianza — Crear cuenta</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{% static 'css/login.css' %}">
+  <style>
+    /* Estilos adicionales para que el formulario se vea bien si es muy largo */
+    .card-login {
+        margin: 20px auto;
+        height: auto;
+        min-height: auto;
+    }
+    .form-login {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Fondo fotográfico -->
+  <div class="bg-foto"></div>
+
+  <!-- ══════════════ CARD DE REGISTRO ══════════════ -->
+  <div class="card-login" style="max-height: 95vh; overflow-y: auto;">
+
+    <!-- CUERPO -->
+    <div class="card-cuerpo">
+
+      <!-- LOGO -->
+      <div class="logo-bloque">
+        <p class="logo-pre">Financiera</p>
+        <h1 class="logo-nombre">confianza</h1>
+        <svg class="logo-ola" viewBox="0 0 115 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0 7 C19 0, 38 14, 57.5 7 C77 0, 96 14, 115 7"
+                stroke="rgba(255,255,255,0.50)" stroke-width="2.5"
+                stroke-linecap="round" fill="none"/>
+        </svg>
+      </div>
+
+      <!-- SALUDO -->
+      <p class="saludo" style="font-size: 1.5rem;">Crear cuenta</p>
+
+      <!-- ── FORMULARIO ────────────────────────── -->
+      <form class="form-login" method="POST" action="{% url 'authentication:register' %}">
+        {% csrf_token %}
+
+        <!-- Error general -->
+        {% if form.non_field_errors %}
+          <div class="alerta-error">
+            {% for error in form.non_field_errors %}
+              {{ error }}
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <!-- Nombres -->
+        <div class="campo">
+          <input
+            type="text"
+            name="nombres"
+            placeholder="Nombres"
+            value="{{ form.nombres.value|default:'' }}"
+            required
+          >
+          {% if form.nombres.errors %}
+            <p class="campo-error">{{ form.nombres.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Apellidos -->
+        <div class="campo">
+          <input
+            type="text"
+            name="apellidos"
+            placeholder="Apellidos"
+            value="{{ form.apellidos.value|default:'' }}"
+            required
+          >
+          {% if form.apellidos.errors %}
+            <p class="campo-error">{{ form.apellidos.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Tipo de documento -->
+        <div class="campo select-wrap">
+          <select name="tipo_documento" id="id_tipo_documento" required>
+            <option value="" disabled {% if not form.tipo_documento.value %}selected{% endif %}>
+              Tipo de documento
+            </option>
+            <option value="DNI" {% if form.tipo_documento.value == 'DNI' %}selected{% endif %}>DNI</option>
+            <option value="CE" {% if form.tipo_documento.value == 'CE' %}selected{% endif %}>Carnet de Extranjería</option>
+            <option value="RUC" {% if form.tipo_documento.value == 'RUC' %}selected{% endif %}>RUC</option>
+          </select>
+          {% if form.tipo_documento.errors %}
+            <p class="campo-error">{{ form.tipo_documento.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Número de documento -->
+        <div class="campo">
+          <input
+            type="text"
+            name="dni"
+            placeholder="Número de documento"
+            value="{{ form.dni.value|default:'' }}"
+            maxlength="20"
+            required
+            inputmode="numeric"
+            oninput="this.value = this.value.replace(/\D/g, '')"
+          >
+          {% if form.dni.errors %}
+            <p class="campo-error">{{ form.dni.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Correo electrónico -->
+        <div class="campo">
+          <input
+            type="email"
+            name="correo"
+            placeholder="Correo electrónico"
+            value="{{ form.correo.value|default:'' }}"
+            required
+          >
+          {% if form.correo.errors %}
+            <p class="campo-error">{{ form.correo.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Teléfono -->
+        <div class="campo">
+          <input
+            type="text"
+            name="telefono"
+            placeholder="Teléfono"
+            value="{{ form.telefono.value|default:'' }}"
+            maxlength="20"
+            required
+            oninput="this.value = this.value.replace(/\D/g, '')"
+          >
+          {% if form.telefono.errors %}
+            <p class="campo-error">{{ form.telefono.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Contraseña -->
+        <div class="campo">
+          <input
+            type="password"
+            name="password"
+            placeholder="Contraseña"
+            required
+          >
+          {% if form.password.errors %}
+            <p class="campo-error">{{ form.password.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Confirmar Contraseña -->
+        <div class="campo">
+          <input
+            type="password"
+            name="confirm_password"
+            placeholder="Confirmar contraseña"
+            required
+          >
+          {% if form.confirm_password.errors %}
+            <p class="campo-error">{{ form.confirm_password.errors.0 }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Botón enviar -->
+        <button type="submit" class="btn-registro" style="margin-top: 10px; background-color: var(--blanco); color: var(--azul-oscuro); border: none;">
+          Completar Registro
+        </button>
+
+      </form>
+      <!-- ── FIN FORMULARIO ─────────────────── -->
+
+      <div style="text-align: center; margin-top: 20px;">
+        <a href="{% url 'authentication:login' %}" class="pie-link" style="color: #666; text-decoration: none; font-size: 0.9em; font-weight: bold;">¿Ya tienes cuenta? Iniciar sesión</a>
+      </div>
+
+    </div>
+    <!-- /card-cuerpo -->
+
+  </div>
+  <!-- /card-login -->
+
+</body>
+</html>
