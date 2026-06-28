@@ -16,12 +16,12 @@
 
 /* Glassmorphism / Premium Cards */
 .premium-card {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(10px);
+    background: rgba(30, 41, 59, 0.7); /* Dark slate instead of white */
+    backdrop-filter: blur(12px);
     border-radius: 16px;
     padding: 24px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     margin-bottom: 24px;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
@@ -116,13 +116,14 @@
     align-items: center;
     justify-content: space-between;
     padding: 15px;
-    background: #f8fafc;
+    background: rgba(30, 41, 59, 0.5); /* Dark slate translucent */
     border-radius: 12px;
     transition: background 0.2s;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .premium-list-item:hover {
-    background: #f1f5f9;
+    background: rgba(30, 41, 59, 0.8);
 }
 
 .item-left {
