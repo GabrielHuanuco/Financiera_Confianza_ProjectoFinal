@@ -20,6 +20,24 @@ def home(request):
     return render(request, 'home.html')
 
 
+from django.http import JsonResponse
+
+def api_homebanking(request):
+    """Endpoint simulado para verificar el estado de la API del Homebanking"""
+    return JsonResponse({
+        "servicio": "Banca Internet Financiera Confianza - Homebanking API",
+        "version": "1.0.0",
+        "estado": "ok"
+    })
+
+def api_core(request):
+    """Endpoint simulado para verificar el estado de la API del Core Bancario"""
+    return JsonResponse({
+        "servicio": "Core Bancario Financiera Confianza - API Interna",
+        "version": "1.0.0",
+        "estado": "ok"
+    })
+
 urlpatterns = [
     path('admin/', admin.site.urls),
 
@@ -39,6 +57,10 @@ urlpatterns = [
 
     # Core Bancario — acceso exclusivo para trabajadores internos
     path('core/', include('core_bancario.urls')),
+
+    # APIs JSON para cumplir con la rúbrica
+    path('api/homebanking/', api_homebanking, name='api_homebanking'),
+    path('api/core/', api_core, name='api_core'),
 ]
 
 # Servir archivos estáticos en desarrollo

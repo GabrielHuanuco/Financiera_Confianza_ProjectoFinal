@@ -198,6 +198,8 @@
                         <th style="padding:10px;">Saldo Inicial</th>
                         <th style="padding:10px;">Capital</th>
                         <th style="padding:10px;">Interés</th>
+                        <th style="padding:10px;">Desgravamen</th>
+                        <th style="padding:10px;">Multiriesgo</th>
                         <th style="padding:10px;">Cuota</th>
                         <th style="padding:10px;">Saldo Final</th>
                         <th style="padding:10px; text-align:center;">Estado</th>
@@ -311,6 +313,8 @@ document.querySelectorAll('.btn-cronograma').forEach(function(btn) {
                         <td style="padding:10px;">S/ ${parseFloat(c.saldo_inicial).toLocaleString('es-PE', {minimumFractionDigits:2})}</td>
                         <td style="padding:10px;">S/ ${parseFloat(c.capital).toLocaleString('es-PE', {minimumFractionDigits:2})}</td>
                         <td style="padding:10px;">S/ ${parseFloat(c.interes).toLocaleString('es-PE', {minimumFractionDigits:2})}</td>
+                        <td style="padding:10px;">S/ ${parseFloat(c.seguro_desgravamen || 0).toLocaleString('es-PE', {minimumFractionDigits:2})}</td>
+                        <td style="padding:10px;">S/ ${parseFloat(c.seguro_multiriesgo || 0).toLocaleString('es-PE', {minimumFractionDigits:2})}</td>
                         <td style="padding:10px; font-weight:600;">S/ ${parseFloat(c.cuota).toLocaleString('es-PE', {minimumFractionDigits:2})}</td>
                         <td style="padding:10px;">S/ ${parseFloat(c.saldo_final).toLocaleString('es-PE', {minimumFractionDigits:2})}</td>
                         <td style="padding:10px; text-align:center;">${estadoHtml}</td>

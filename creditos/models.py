@@ -43,6 +43,10 @@ class Credito(models.Model):
     # Tasa Moratoria (Penalidad sobre saldo atrasado - 15% nominal anual BCRP)
     tasa_moratoria = models.DecimalField(max_digits=7, decimal_places=4, default=Decimal('0.15'))
     
+    incluye_desgravamen = models.BooleanField(default=True)
+    incluye_multiriesgo = models.BooleanField(default=True)
+
+    
     cuota_mensual  = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0'))
     saldo_pendiente= models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0'))
     cuotas_pagadas = models.IntegerField(default=0)
@@ -63,7 +67,13 @@ class Credito(models.Model):
         tasa_mensual = (1 + tea) ** (1/12) - 1
         factor = (1 + tasa_mensual) ** n
         cuota = float(self.monto) * (tasa_mensual * factor) / (factor - 1)
-        return Decimal(str(round(cuota, 2)))
+        
+        # Seguros fijos mensuales (aprox)
+        seguro_desgravamen = float(self.monto) * 0.000746 if self.incluye_desgravamen else 0
+        seguro_multiriesgo = float(self.monto) * 0.000916 if self.incluye_multiriesgo else 0
+        
+        cuota_total = cuota + seguro_desgravamen + seguro_multiriesgo
+        return Decimal(str(round(cuota_total, 2)))
 
     def progreso_pago(self):
         if self.cuotas == 0:
@@ -97,20 +107,26 @@ class Credito(models.Model):
 
         tasa_mensual = (1 + tea) ** (1/12) - 1
         factor = (1 + tasa_mensual) ** n
-        cuota = saldo * (tasa_mensual * factor) / (factor - 1)
-        cuota_decimal = round(cuota, 2)
+        cuota_pura = saldo * (tasa_mensual * factor) / (factor - 1)
+        
+        seguro_desgravamen = float(self.monto) * 0.000746 if self.incluye_desgravamen else 0
+        seguro_multiriesgo = float(self.monto) * 0.000916 if self.incluye_multiriesgo else 0
+        
+        cuota_total = cuota_pura + seguro_desgravamen + seguro_multiriesgo
+        cuota_decimal = round(cuota_total, 2)
 
         from datetime import timedelta
         fecha_pago = self.fecha_solicitud.date() if self.fecha_solicitud else None
 
         for i in range(1, n + 1):
             interes = saldo * tasa_mensual
-            capital = cuota - interes
+            capital = cuota_pura - interes
             
             # Ajuste en la última cuota para evitar centavos de diferencia
             if i == n:
                 capital = saldo
-                cuota_decimal = round(capital + interes, 2)
+                cuota_total = capital + interes + seguro_desgravamen + seguro_multiriesgo
+                cuota_decimal = round(cuota_total, 2)
             
             saldo_final = saldo - capital
             if fecha_pago:
@@ -122,6 +138,8 @@ class Credito(models.Model):
                 'saldo_inicial': Decimal(str(round(saldo, 2))),
                 'capital': Decimal(str(round(capital, 2))),
                 'interes': Decimal(str(round(interes, 2))),
+                'seguro_desgravamen': Decimal(str(round(seguro_desgravamen, 2))),
+                'seguro_multiriesgo': Decimal(str(round(seguro_multiriesgo, 2))),
                 'cuota': Decimal(str(cuota_decimal)),
                 'saldo_final': Decimal(str(round(max(0, saldo_final), 2))),
                 'estado': 'PAGADO' if i <= self.cuotas_pagadas else 'PENDIENTE'
