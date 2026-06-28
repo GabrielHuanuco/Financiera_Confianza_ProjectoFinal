@@ -39,6 +39,10 @@ class Credito(models.Model):
     monto          = models.DecimalField(max_digits=12, decimal_places=2)
     cuotas         = models.IntegerField()
     tasa_interes   = models.DecimalField(max_digits=7, decimal_places=4, default=Decimal('0.18'))
+    
+    # Tasa Moratoria (Penalidad sobre saldo atrasado - 15% nominal anual BCRP)
+    tasa_moratoria = models.DecimalField(max_digits=7, decimal_places=4, default=Decimal('0.15'))
+    
     cuota_mensual  = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0'))
     saldo_pendiente= models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0'))
     cuotas_pagadas = models.IntegerField(default=0)

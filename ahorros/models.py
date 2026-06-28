@@ -3,6 +3,12 @@ from authentication.models import Cliente
 
 class CuentaAhorro(models.Model):
 
+    TIPOS_CUENTA = [
+        ('Tradicional', 'Ahorro Tradicional (TREA ~3.50%)'),
+        ('Plazo Fijo', 'Depósito a Plazo Fijo (TEA 3.13% - 6.38%)'),
+        ('CTS', 'Cuenta CTS'),
+    ]
+
     cliente = models.ForeignKey(
         Cliente,
         on_delete=models.CASCADE
@@ -13,7 +19,18 @@ class CuentaAhorro(models.Model):
         unique=True
     )
 
-    tipo_cuenta = models.CharField(max_length=50)
+    tipo_cuenta = models.CharField(
+        max_length=50,
+        choices=TIPOS_CUENTA,
+        default='Tradicional'
+    )
+
+    # Tasa Efectiva Anual (TEA/TREA)
+    tasa_interes = models.DecimalField(
+        max_digits=7, 
+        decimal_places=4, 
+        default=0.0350 # 3.50% por defecto (Ahorro tradicional)
+    )
 
     saldo = models.DecimalField(
         max_digits=12,
