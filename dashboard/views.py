@@ -222,7 +222,7 @@ def dashboard(request):
 
         # Gráfico: Distribución RDS (Barras)
         rds_bins = {'<30% (Saludable)': 0, '30-50% (Riesgo Medio)': 0, '>50% (Riesgo Alto)': 0}
-        for c in Credito.objects.all():
+        for c in Credito.objects.select_related('cliente').all():
             rds = c.valor_rds
             if rds < 30: rds_bins['<30% (Saludable)'] += 1
             elif rds <= 50: rds_bins['30-50% (Riesgo Medio)'] += 1
