@@ -108,6 +108,35 @@ class Command(BaseCommand):
             deleted = User.objects.filter(username__startswith="cliente_").delete()
             self.stdout.write("Reset: {} registros eliminados.".format(deleted[0]))
 
+        # Crear usuarios trabajadores para el Core Bancario con contraseñas en formato DNI@index
+        trabajadores_seed = [
+            ("ASESOR", "11111111", "11111111@1", "Asesor", "Comercial"),
+            ("ADMIN", "11111112", "11111112@2", "Administrador", "Sistema"),
+            ("GERENCIA", "11111113", "11111113@3", "Gerente", "General"),
+            ("RIESGOS", "11111114", "11111114@4", "Analista", "Riesgos"),
+            ("COMITE", "11111115", "11111115@5", "Miembro", "Comite"),
+        ]
+        for rol_t, user_t, pass_t, fname_t, lname_t in trabajadores_seed:
+            t_user, _ = User.objects.get_or_create(
+                username=user_t,
+                defaults=dict(email=user_t + "@financiera.pe", first_name=fname_t, last_name=lname_t, is_staff=True, is_superuser=(rol_t == "ADMIN"))
+            )
+            t_user.set_password(pass_t)
+            t_user.is_staff = True
+            t_user.save()
+            if not hasattr(t_user, 'cliente'):
+                Cliente.objects.create(
+                    usuario=t_user,
+                    uid=uuid.uuid4(),
+                    telefono="900000000",
+                    dni=user_t,
+                    direccion="Av Central 123",
+                    ingresos=Decimal("5000.00"),
+                    score_crediticio=800,
+                    estado=True,
+                    rol=rol_t
+                )
+
         for i, (nombre, apellidos) in enumerate(NOMBRES, start=1):
             username = "cliente_{:03d}".format(i)
             dni = "4{:07d}".format(i)
@@ -132,9 +161,8 @@ class Command(BaseCommand):
                             last_name=apellidos,
                         )
                     )
-                    if u_created:
-                        user.set_password("testpassword123")
-                        user.save()
+                    user.set_password("{}@{}".format(dni, i))
+                    user.save()
 
                     if hasattr(user, 'cliente'):
                         saltados += 1
